@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">Li5a</string>
+    <string name="start_screen_heading">Play</string>
+    <string name="button_start_game">Start a new game</string>
+    <string name="button_join_game">Join game</string>
+    <string name="button_load_game">Load game</string>
+    <string name="message_enter_name">Enter your name</string>
+    <string name="button_connect_to_host">Connect</string>
+    <string name="button_host_game">Host game</string>
+</resources>
