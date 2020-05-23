@@ -1,14 +1,11 @@
 package de.htw.ai.ema.network.bluetooth;
 
 import android.bluetooth.BluetoothSocket;
-
-
 import java.util.Map;
 
 public class BluetoothProperties {
 
     private static BluetoothProperties instance = null;
-
     private Map<String, BluetoothSocket> sockets = null;
 
     private BluetoothProperties(){}

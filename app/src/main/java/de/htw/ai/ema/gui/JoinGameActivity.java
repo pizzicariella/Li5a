@@ -1,22 +1,34 @@
 package de.htw.ai.ema.gui;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import de.htw.ai.ema.R;
 import de.htw.ai.ema.network.bluetooth.BluetoothConnector;
+import de.htw.ai.ema.network.bluetooth.BluetoothProperties;
+import de.htw.ai.ema.network.service.handler.ConnectionHandler;
+import de.htw.ai.ema.network.service.listener.ReceiveListener;
+import de.htw.ai.ema.network.service.nToM.NToMConnectionHandler;
+
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 
 
 public class JoinGameActivity extends AppCompatActivity {
@@ -29,6 +41,7 @@ public class JoinGameActivity extends AppCompatActivity {
     private final String TAG = "Join Game Activity";
     private static List<BluetoothDevice> availableDevices;
     private BroadcastReceiver receiver;
+    private NToMConnectionHandler connectionHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +49,7 @@ public class JoinGameActivity extends AppCompatActivity {
         setContentView(R.layout.activity_join_game);
         this.selected = null;
         this.btConnector = new BluetoothConnector(false);
+        this.connectionHandler = new NToMConnectionHandler(this.btConnector.getDeviceName());
         this.availableDevices = btConnector.getKnownDevices();
         this.receiver = btConnector.getBluetoothDeviceReceiver();
         //auslagern nach connector?
@@ -63,12 +77,40 @@ public class JoinGameActivity extends AppCompatActivity {
         }
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public void connectWithSelectedDevice(View view){
         if(selected != null) {
             System.out.println(selected.getAddress() + " " + selected.getName());
             btConnector.connect(this, selected);
-            //TODO Ausgabe??
-            //TODO make sure 4 players have joined - maybe receive corresponding message from host?
+            TextView waitTextView = (TextView) findViewById(R.id.wait_text_view_join);
+            waitTextView.setVisibility(View.VISIBLE);
+            try {
+                btConnector.getConnectThread().join();
+            } catch (InterruptedException e) {
+                Log.e(TAG, "couldn't join connect thread", e);
+            }
+            BluetoothProperties btProps = BluetoothProperties.getInstance();
+            Map<String, BluetoothSocket> sockets = btProps.getSockets();
+            if(sockets != null){
+                for(BluetoothSocket socket: sockets.values()){
+                    try{
+                        connectionHandler.addReceiveListener(received -> {
+                            String message = new String(received, StandardCharsets.UTF_8).trim();
+                            Log.println(Log.INFO, TAG, "Received the following message: "+ message);
+                            if(message.equals("connectingDone")){
+                                Log.println(Log.INFO, TAG, "all 4 players are connected and " +
+                                        "the game can start. Jippiiiieee");
+                                goToGameActivity();
+                            }
+                        });
+                        connectionHandler.handleConnection(socket.getInputStream(), socket.getOutputStream());
+                    } catch (IOException e) {
+                        Log.e(TAG, "Error getting input or output stream", e);
+                    }
+                }
+            } else {
+                Log.println(Log.INFO, TAG, "sockets were null");
+            }
         } else {
             //TODO Ausgabe bauen
             Log.println(Log.INFO, TAG, "No Device selected");

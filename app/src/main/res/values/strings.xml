@@ -7,4 +7,5 @@
     <string name="message_enter_name">Enter your name</string>
     <string name="button_connect_to_host">Connect</string>
     <string name="button_host_game">Host game</string>
+    <string name="waiting_for_players_text">\"Waiting for other Players to join the game...\"</string>
 </resources>

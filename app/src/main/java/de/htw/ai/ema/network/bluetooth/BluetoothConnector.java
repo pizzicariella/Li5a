@@ -29,17 +29,33 @@ public class BluetoothConnector {
     private final UUID LI5A_UUID = UUID.fromString("46e94e5f-e660-4fd0-a179-43f525bc4d78");
     private final String TAG = "BluetoothAdapter";
     private final boolean host;
-    private boolean connected;
+    private AcceptThread acceptThread;
+    private ConnectThread connectThread;
+    private String deviceName;
 
     public BluetoothConnector(boolean host){
         this.host = host;
-        this.connected = false;
         this.btAdapter = BluetoothAdapter.getDefaultAdapter();
         if(btAdapter == null){
             //TODO User Ausgabe bauen
             System.out.println("Device doesn't support Bluetooth");
             Log.println(Log.INFO, TAG, "Device doesn't support bluetooth");
         }
+        this.deviceName = btAdapter.getName();
+        this.acceptThread = null;
+        this.connectThread = null;
+    }
+
+    public String getDeviceName() {
+        return deviceName;
+    }
+
+    public AcceptThread getAcceptThread() {
+        return acceptThread;
+    }
+
+    public ConnectThread getConnectThread() {
+        return connectThread;
     }
 
     public List<BluetoothDevice> getKnownDevices(){
@@ -84,14 +100,14 @@ public class BluetoothConnector {
     }
 
     public void accept(){
-        AcceptThread at = new AcceptThread();
-        if(at.getBtServerSocket() != null){
-            at.start();
+        BluetoothConnector.this.acceptThread = new AcceptThread();
+        if(BluetoothConnector.this.acceptThread.getBtServerSocket() != null){
+           BluetoothConnector.this.acceptThread.start();
         }
     }
 
     //opens server socket and listens to incoming connections
-    private class AcceptThread extends Thread{
+    public class AcceptThread extends Thread{
 
         private final BluetoothServerSocket btServerSocket;
         private final String NAME = "Li5a";
@@ -113,10 +129,11 @@ public class BluetoothConnector {
         }
 
         public void run(){
-            BluetoothSocket btSocket = null;
+            //BluetoothSocket btSocket = null;
             boolean accept = true;
             Map<String, BluetoothSocket> sockets = new HashMap<>();
             while (accept){
+                BluetoothSocket btSocket = null;
                 try {
                     btSocket = btServerSocket.accept();
                     Log.println(Log.INFO, TAG, "successfully opened socket");
@@ -126,13 +143,14 @@ public class BluetoothConnector {
                 }
 
                 if(btSocket!=null){
-                    String conName = btAdapter.getName()+"To"+btSocket.getRemoteDevice().getName();
+                    String conName = BluetoothConnector.this.deviceName+"To"+btSocket.getRemoteDevice().getName();
                     // TODO or do i have to handle connections from here??
                     // btServerSocket.close(); unless I want more connections??
                     sockets.put(conName, btSocket);
                     Log.println(Log.INFO, TAG, "A connection has been established: "+conName);
-                    if(sockets.size() == 4) {
+                    if(sockets.size() == 3) {
                         accept = false;
+                        Log.println(Log.INFO, TAG, "all players connected");
                         try {
                             BluetoothProperties.setSockets(sockets);
                             btServerSocket.close();
@@ -155,15 +173,15 @@ public class BluetoothConnector {
 
     public void connect(Activity activity, BluetoothDevice device){
 
-        ConnectThread ct = new ConnectThread(device);
-        if(ct.getBtSocket() != null){
-            ct.start();
+        BluetoothConnector.this.connectThread = new ConnectThread(device);
+        if(BluetoothConnector.this.connectThread.getBtSocket() != null){
+            BluetoothConnector.this.connectThread.start();
         } else{
             Log.e(TAG, "Bluetooth socket could not be created.");
         }
     }
 
-    private class ConnectThread extends Thread{
+    public class ConnectThread extends Thread{
 
         private final BluetoothSocket btSocket;
         private final BluetoothDevice btDevice;
@@ -213,7 +231,6 @@ public class BluetoothConnector {
             Map<String, BluetoothSocket> sockets = new HashMap<>();
             sockets.put(conName, btSocket);
             BluetoothProperties.setSockets(sockets);
-            BluetoothConnector.this.connected = true;
         }
 
         public void cancel(){
