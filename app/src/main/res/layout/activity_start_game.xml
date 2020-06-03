@@ -2,13 +2,13 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/activityStartGame"
+    android:id="@+id/activity_start_game"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".gui.StartGameActivity">
 
     <EditText
-        android:id="@+id/editText"
+        android:id="@+id/enter_player_name_start"
         android:layout_width="138dp"
         android:layout_height="48dp"
         android:layout_marginTop="16dp"
@@ -20,7 +20,7 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/button4"
+        android:id="@+id/button_host_game"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="62dp"
@@ -28,7 +28,7 @@
         android:text="@string/button_host_game"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/editText" />
+        app:layout_constraintTop_toBottomOf="@+id/enter_player_name_start" />
 
     <TextView
         android:id="@+id/wait_text_view_start"
@@ -40,6 +40,6 @@
         android:visibility="invisible"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/button4" />
+        app:layout_constraintTop_toBottomOf="@+id/button_host_game" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

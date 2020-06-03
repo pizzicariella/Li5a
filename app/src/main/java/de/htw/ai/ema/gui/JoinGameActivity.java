@@ -5,10 +5,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import de.htw.ai.ema.R;
-import de.htw.ai.ema.network.bluetooth.BluetoothConnector;
+import de.htw.ai.ema.network.bluetooth.BluetoothConnector4Player;
 import de.htw.ai.ema.network.bluetooth.BluetoothProperties;
 import de.htw.ai.ema.network.service.handler.ConnectionHandler;
-import de.htw.ai.ema.network.service.listener.ReceiveListener;
 import de.htw.ai.ema.network.service.nToM.NToMConnectionHandler;
 
 import android.bluetooth.BluetoothDevice;
@@ -23,17 +22,17 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
 
 public class JoinGameActivity extends AppCompatActivity {
 
-    private BluetoothConnector btConnector;
+    private BluetoothConnector4Player btConnector;
     private RecyclerView recyclerView;
     private static RecyclerView.Adapter deviceAdapter;
     private RecyclerView.LayoutManager layoutManager;
@@ -41,18 +40,17 @@ public class JoinGameActivity extends AppCompatActivity {
     private final String TAG = "Join Game Activity";
     private static List<BluetoothDevice> availableDevices;
     private BroadcastReceiver receiver;
-    private NToMConnectionHandler connectionHandler;
+    private ConnectionHandler connectionHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_join_game);
         this.selected = null;
-        this.btConnector = new BluetoothConnector(false);
+        this.btConnector = new BluetoothConnector4Player(false);
         this.connectionHandler = new NToMConnectionHandler(this.btConnector.getDeviceName());
-        this.availableDevices = btConnector.getKnownDevices();
+        availableDevices = btConnector.getKnownDevices();
         this.receiver = btConnector.getBluetoothDeviceReceiver();
-        //auslagern nach connector?
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
         filter.addAction(BluetoothDevice.ACTION_FOUND);
         registerReceiver(receiver, filter);
@@ -60,7 +58,7 @@ public class JoinGameActivity extends AppCompatActivity {
         //TODO user ausgabe, dass nach geräten gesucht wird
         btConnector.discoverDevices(this);
 
-        recyclerView = (RecyclerView) findViewById(R.id.available_devices);
+        recyclerView = (RecyclerView) findViewById(R.id.recycler_view_available_devices);
 
         //recyclerView.setHasFixedSize(true); ja nein?
         layoutManager = new LinearLayoutManager(this);
@@ -80,8 +78,8 @@ public class JoinGameActivity extends AppCompatActivity {
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public void connectWithSelectedDevice(View view){
         if(selected != null) {
-            System.out.println(selected.getAddress() + " " + selected.getName());
-            btConnector.connect(this, selected);
+            String playersName = ((EditText) findViewById(R.id.enter_player_name_join)).getText().toString();
+            btConnector.connect(selected);
             TextView waitTextView = (TextView) findViewById(R.id.wait_text_view_join);
             waitTextView.setVisibility(View.VISIBLE);
             try {
@@ -95,12 +93,19 @@ public class JoinGameActivity extends AppCompatActivity {
                 for(BluetoothSocket socket: sockets.values()){
                     try{
                         connectionHandler.addReceiveListener(received -> {
-                            String message = new String(received, StandardCharsets.UTF_8).trim();
-                            Log.println(Log.INFO, TAG, "Received the following message: "+ message);
-                            if(message.equals("connectingDone")){
-                                Log.println(Log.INFO, TAG, "all 4 players are connected and " +
-                                        "the game can start. Jippiiiieee");
-                                goToGameActivity();
+                            //String message = new String(received, StandardCharsets.UTF_8).trim();
+                            if(received instanceof String) {
+                                String message = (String) received;
+                                Log.println(Log.INFO, TAG, "Received the following message: " + message);
+                                if (message.equals("connectingDone")) {
+                                    Log.println(Log.INFO, TAG, "all 4 players are connected and " +
+                                            "the game can start. Jippiiiieee");
+                                    connectionHandler.unhandleConnections(false);
+                                    Intent intent = new Intent(this, PlayGameActivity.class);
+                                    intent.putExtra("playersName", playersName);
+                                    intent.putExtra("host", false);
+                                    startActivity(intent);
+                                }
                             }
                         });
                         connectionHandler.handleConnection(socket.getInputStream(), socket.getOutputStream());
@@ -115,11 +120,6 @@ public class JoinGameActivity extends AppCompatActivity {
             //TODO Ausgabe bauen
             Log.println(Log.INFO, TAG, "No Device selected");
         }
-    }
-
-    public void goToGameActivity(){
-        Intent intent = new Intent(this, PlayGameActivity.class);
-        startActivity(intent);
     }
 
     public class DeviceAdapter extends RecyclerView.Adapter<DeviceAdapter.DeviceViewHolder> {

@@ -1,6 +1,8 @@
 package de.htw.ai.ema.network.bluetooth;
 
 import android.bluetooth.BluetoothSocket;
+
+import java.util.HashMap;
 import java.util.Map;
 
 public class BluetoothProperties {
@@ -25,6 +27,9 @@ public class BluetoothProperties {
     }
 
     public Map<String, BluetoothSocket> getSockets() {
+        if(sockets == null){
+            this.sockets = new HashMap<>();
+        }
         return sockets;
     }
 }

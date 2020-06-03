@@ -11,7 +11,6 @@ public class BluetoothEnabler {
     public void enableBluetooth(Activity activity){
         Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
         activity.startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-        //TODO Ergebnis bearbeiten in onActivityResult
     }
 
 }
