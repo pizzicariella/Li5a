@@ -9,6 +9,7 @@ public class BluetoothProperties {
 
     private static BluetoothProperties instance = null;
     private Map<String, BluetoothSocket> sockets = null;
+    private String deviceName = null;
 
     private BluetoothProperties(){}
 
@@ -26,10 +27,19 @@ public class BluetoothProperties {
         instance.sockets = sockets;
     }
 
+    public static void setDeviceName(String deviceName){
+        if(instance == null){
+            instance = new BluetoothProperties();
+        }
+        instance.deviceName = deviceName;
+    }
+
     public Map<String, BluetoothSocket> getSockets() {
         if(sockets == null){
             this.sockets = new HashMap<>();
         }
         return sockets;
     }
+
+    public String getDeviceName(){return this.deviceName;}
 }

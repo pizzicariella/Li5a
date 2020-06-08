@@ -2,6 +2,7 @@ package de.htw.ai.ema.gui;
 
 import androidx.appcompat.app.AppCompatActivity;
 import de.htw.ai.ema.R;
+import de.htw.ai.ema.network.ConnectionProperties;
 import de.htw.ai.ema.network.bluetooth.BluetoothConnector4Player;
 import de.htw.ai.ema.network.bluetooth.BluetoothProperties;
 import de.htw.ai.ema.network.service.handler.ConnectionHandler;
@@ -23,13 +24,17 @@ public class StartGameActivity extends AppCompatActivity {
     private final String TAG = "StartGameActivity";
     ConnectionHandler conHandler;
     BluetoothConnector4Player btConnector;
+    BluetoothProperties btProps;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start_game);
         this.btConnector = new BluetoothConnector4Player(true);
-        this.conHandler = new NToMConnectionHandler(btConnector.getDeviceName());
+        BluetoothProperties.setDeviceName(btConnector.getDeviceName());
+        this.btProps = BluetoothProperties.getInstance();
+        //this.conHandler = new NToMConnectionHandler(btConnector.getDeviceName());
+        this.conHandler = ConnectionProperties.getInstance().getConHandler();
     }
 
     public void hostGame(View view){
@@ -44,21 +49,21 @@ public class StartGameActivity extends AppCompatActivity {
         } catch (InterruptedException e) {
             Log.e(TAG, "Could not join accept Thread", e);
         }
-        BluetoothProperties btProps = BluetoothProperties.getInstance();
-        Map<String, BluetoothSocket> sockets = btProps.getSockets();
+        //BluetoothProperties btProps = BluetoothProperties.getInstance();
+        Map<String, BluetoothSocket> sockets = this.btProps.getSockets();
         if(sockets != null && sockets.size() == 3){
             //notify the other players
             //byte[] connectedMessage = "connectingDone".getBytes();
             String connectedMessage = "connectingDone";
             for(BluetoothSocket socket: sockets.values()){
                 try{
-                    conHandler.handleConnection(socket.getInputStream(), socket.getOutputStream());
+                    this.conHandler.handleConnection(socket.getInputStream(), socket.getOutputStream());
                 } catch (IOException e) {
                     Log.e(TAG, "Error getting input or output stream", e);
                 }
             }
-            conHandler.sendMessage(connectedMessage);
-            Log.println(Log.INFO, TAG, btConnector.getDeviceName()+": I informed everyone that game can start.");
+            this.conHandler.sendMessage(connectedMessage);
+            Log.println(Log.INFO, TAG, this.btConnector.getDeviceName()+": I informed everyone that game can start.");
             Intent intent = new Intent(this, PlayGameActivity.class);
             intent.putExtra("playersName", playersName);
             intent.putExtra("host", true);

@@ -15,6 +15,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class PlayGameActivity extends AppCompatActivity {
@@ -22,9 +23,9 @@ public class PlayGameActivity extends AppCompatActivity {
     private MultiplayerController controller;
     private String playerName;
     private RecyclerView recyclerView;
-    private static RecyclerView.Adapter imageAdapter;
+    public static RecyclerView.Adapter imageAdapter;
     private RecyclerView.LayoutManager layoutManager;
-    private static ArrayList<Card> handCards;
+    private static LinkedList<Card> handCards;
     private Card selectedCard;
     private final String TAG = "PlayGameActivity";
 
@@ -32,20 +33,28 @@ public class PlayGameActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_play_game);
-        handCards = new ArrayList<>();
-        recyclerView = (RecyclerView) findViewById(R.id.recycler_view_hand_cards);
-        layoutManager = new LinearLayoutManager(PlayGameActivity.this);
-        recyclerView.setLayoutManager(layoutManager);
-        imageAdapter = new ImageAdapter(handCards);
-        recyclerView.setAdapter(imageAdapter);
         Intent i = getIntent();
         this.playerName = i.getStringExtra("playersName");
         this.controller = new MultiplayerController(this.playerName,
                 i.getBooleanExtra("host", false));
+        handCards = new LinkedList<>();
+        recyclerView = (RecyclerView) findViewById(R.id.recycler_view_hand_cards);
+        layoutManager = new LinearLayoutManager(this);
+        recyclerView.setLayoutManager(layoutManager);
+        imageAdapter = new ImageAdapter(handCards);
+        recyclerView.setAdapter(imageAdapter);
+        this.controller.startGame();
     }
 
-    public static void addImage(Card card){
-        handCards.add(card);
+    public static void setHandCards(List<Card> cards){
+        for(Card c: cards){
+            handCards.add(c);
+            imageAdapter.notifyItemInserted(handCards.size()-1);
+        }
+    }
+
+    public void addImage(Card card){
+
         imageAdapter.notifyItemInserted(handCards.size()-1);
     }
 
@@ -71,15 +80,12 @@ public class PlayGameActivity extends AppCompatActivity {
         public ImageAdapter.ImageViewHolder onCreateViewHolder(ViewGroup parent, int viewType){
             ImageView v = (ImageView) LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.hand_card_image_view, parent, false);
-            View.OnClickListener onClickListener = new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    ImageView iv = (ImageView)v;
-                    Drawable frame = getResources().getDrawable(R.drawable.highlight_card_frame);
-                    iv.setBackground(frame);
-                    //PlayGameActivity.this.selectedCard = cards.get()
-                    //JoinGameActivity.this.selected = cards.get(tv.getId());
-                }
+            View.OnClickListener onClickListener = v1 -> {
+                ImageView iv = (ImageView) v1;
+                Drawable frame = getResources().getDrawable(R.drawable.highlight_card_frame);
+                iv.setBackground(frame);
+                //PlayGameActivity.this.selectedCard = cards.get()
+                //JoinGameActivity.this.selected = cards.get(tv.getId());
             };
             v.setOnClickListener(onClickListener);
             ImageViewHolder vh = new ImageViewHolder(v);

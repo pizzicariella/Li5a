@@ -5,11 +5,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import de.htw.ai.ema.R;
+import de.htw.ai.ema.network.ConnectionProperties;
 import de.htw.ai.ema.network.bluetooth.BluetoothConnector4Player;
 import de.htw.ai.ema.network.bluetooth.BluetoothProperties;
 import de.htw.ai.ema.network.service.handler.ConnectionHandler;
-import de.htw.ai.ema.network.service.nToM.NToMConnectionHandler;
-
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
@@ -24,7 +23,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +39,7 @@ public class JoinGameActivity extends AppCompatActivity {
     private static List<BluetoothDevice> availableDevices;
     private BroadcastReceiver receiver;
     private ConnectionHandler connectionHandler;
+    private BluetoothProperties btProps;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +47,10 @@ public class JoinGameActivity extends AppCompatActivity {
         setContentView(R.layout.activity_join_game);
         this.selected = null;
         this.btConnector = new BluetoothConnector4Player(false);
-        this.connectionHandler = new NToMConnectionHandler(this.btConnector.getDeviceName());
+        BluetoothProperties.setDeviceName(this.btConnector.getDeviceName());
+        this.btProps = BluetoothProperties.getInstance();
+        //this.connectionHandler = new NToMConnectionHandler(this.btConnector.getDeviceName());
+        this.connectionHandler = ConnectionProperties.getInstance().getConHandler();
         availableDevices = btConnector.getKnownDevices();
         this.receiver = btConnector.getBluetoothDeviceReceiver();
         IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
@@ -87,12 +89,12 @@ public class JoinGameActivity extends AppCompatActivity {
             } catch (InterruptedException e) {
                 Log.e(TAG, "couldn't join connect thread", e);
             }
-            BluetoothProperties btProps = BluetoothProperties.getInstance();
-            Map<String, BluetoothSocket> sockets = btProps.getSockets();
+            //BluetoothProperties btProps = BluetoothProperties.getInstance();
+            Map<String, BluetoothSocket> sockets = this.btProps.getSockets();
             if(sockets != null){
                 for(BluetoothSocket socket: sockets.values()){
                     try{
-                        connectionHandler.addReceiveListener(received -> {
+                        this.connectionHandler.addReceiveListener(received -> {
                             //String message = new String(received, StandardCharsets.UTF_8).trim();
                             if(received instanceof String) {
                                 String message = (String) received;
@@ -100,7 +102,7 @@ public class JoinGameActivity extends AppCompatActivity {
                                 if (message.equals("connectingDone")) {
                                     Log.println(Log.INFO, TAG, "all 4 players are connected and " +
                                             "the game can start. Jippiiiieee");
-                                    connectionHandler.unhandleConnections(false);
+                                    //this.connectionHandler.unhandleConnections(false);
                                     Intent intent = new Intent(this, PlayGameActivity.class);
                                     intent.putExtra("playersName", playersName);
                                     intent.putExtra("host", false);
@@ -108,7 +110,7 @@ public class JoinGameActivity extends AppCompatActivity {
                                 }
                             }
                         });
-                        connectionHandler.handleConnection(socket.getInputStream(), socket.getOutputStream());
+                        this.connectionHandler.handleConnection(socket.getInputStream(), socket.getOutputStream());
                     } catch (IOException e) {
                         Log.e(TAG, "Error getting input or output stream", e);
                     }
