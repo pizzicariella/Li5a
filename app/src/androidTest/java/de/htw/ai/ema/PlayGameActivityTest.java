@@ -48,7 +48,7 @@ public class PlayGameActivityTest {
 
     @Test
     public void testRecyclerViewHandCards(){
-        PlayGameActivity.addImage(new Card(Suit.CLUBS, Rank.ACE));
+        //PlayGameActivity.addCard(new Card(Suit.CLUBS, Rank.ACE));
         onView(withId(R.id.recycler_view_hand_cards)).check(matches(atPosition(0, isDisplayed())));
         onView(withId(R.id.recycler_view_hand_cards)).perform(actionOnItemAtPosition(0, click()));
         onView(withId(R.id.recycler_view_hand_cards)).check(matches(atPosition(0,

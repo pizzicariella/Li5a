@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import de.htw.ai.ema.gui.ChangeListener;
 import de.htw.ai.ema.gui.PlayGameActivity;
 import de.htw.ai.ema.logic.Li5aLogic;
 import de.htw.ai.ema.logic.Li5aLogicImpl;
@@ -31,6 +32,7 @@ public class MultiplayerController implements Control {
     private Map<String, Player> players;
     private Game game;
     private boolean host;
+    private ArrayList<ChangeListener> changeListeners;
     private final String TAG = "MultiplayerController";
 
     public MultiplayerController(String playersName, boolean host){
@@ -42,6 +44,7 @@ public class MultiplayerController implements Control {
         this.handler = ConnectionProperties.getInstance().getConHandler();
         this.handler.addReceiveListener(new ReceiveListenerImpl());
         this.logic = new Li5aLogicImpl();
+        this.changeListeners = new ArrayList<>();
     }
 
     public Game getGame() {
@@ -68,6 +71,10 @@ public class MultiplayerController implements Control {
         this.game = game;
     }
 
+    public void addChangeListener(ChangeListener changeListener){
+        this.changeListeners.add(changeListener);
+    }
+
     @Override
     public void startGame() {
         if(!this.host){
@@ -91,12 +98,13 @@ public class MultiplayerController implements Control {
             //oder ist es sinnvoller immer ein neues objekt zu erstellen?
             this.game.getCurrentRound().setRoundNumber(this.game.getCurrentRound().getRoundNumber()+1);
             this.game.getCurrentRound().getCurrentCycle().setCycleNumber(0);
-            this.startCycle();
-            PlayGameActivity.setHandCards(this.game.getPlayers().get(playersName).getHand().getCards());
-            /*for (Card card : handCards) {
-                PlayGameActivity.addImage(card);
-                //PlayGameActivity.imageAdapter.notifyItemInserted(handCards.size()-1);
-            }*/
+            //PlayGameActivity.setHandCards(this.game.getPlayers().get(playersName).getHand().getCards());
+            List<Card> handCards = this.game.getPlayers().get(this.playersName).getHand().getCards();
+            for(ChangeListener cl: this.changeListeners){
+                cl.onCardSetChange(handCards);
+                Log.println(Log.INFO, TAG, "notified listeners");
+            }
+            //this.startCycle(); TODO uncomment later when all methods are implemented
         } else {
             Log.println(Log.INFO, TAG, "game wasn't initialized correctly");
         }

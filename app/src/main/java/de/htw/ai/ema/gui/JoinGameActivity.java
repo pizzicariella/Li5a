@@ -49,7 +49,6 @@ public class JoinGameActivity extends AppCompatActivity {
         this.btConnector = new BluetoothConnector4Player(false);
         BluetoothProperties.setDeviceName(this.btConnector.getDeviceName());
         this.btProps = BluetoothProperties.getInstance();
-        //this.connectionHandler = new NToMConnectionHandler(this.btConnector.getDeviceName());
         this.connectionHandler = ConnectionProperties.getInstance().getConHandler();
         availableDevices = btConnector.getKnownDevices();
         this.receiver = btConnector.getBluetoothDeviceReceiver();
