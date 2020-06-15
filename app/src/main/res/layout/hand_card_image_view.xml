@@ -3,6 +3,8 @@
     android:id="@+id/hand_card_image_view"
     android:layout_width="86.375dp"
     android:layout_height="132dp"
+    android:layout_gravity="bottom"
+    android:layout_alignParentBottom="true"
     android:padding="3dp">
     <!--android:tint="@color/colorAccent"-->
 

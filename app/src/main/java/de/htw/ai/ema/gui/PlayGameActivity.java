@@ -1,6 +1,7 @@
 package de.htw.ai.ema.gui;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 import de.htw.ai.ema.R;
@@ -8,13 +9,20 @@ import de.htw.ai.ema.control.MultiplayerController;
 import de.htw.ai.ema.model.Card;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.DragEvent;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class PlayGameActivity extends AppCompatActivity {
 
@@ -22,9 +30,10 @@ public class PlayGameActivity extends AppCompatActivity {
     private String playerName;
     private RecyclerView recyclerView;
     private RecyclerView.Adapter imageAdapter;
-    private RecyclerView.LayoutManager layoutManager;
+    private StaggeredGridLayoutManager layoutManager;
     private LinkedList<Card> handCards;
     private Card selectedCard;
+    private Map<Integer, Card> selectedCards;
     private final String TAG = "PlayGameActivity";
 
 
@@ -55,6 +64,7 @@ public class PlayGameActivity extends AppCompatActivity {
         this.recyclerView.setLayoutManager(this.layoutManager);
         this.imageAdapter = new ImageAdapter(handCards);
         this.recyclerView.setAdapter(this.imageAdapter);
+        this.selectedCards = new HashMap<>();
         this.controller.startGame();
     }
 
@@ -103,16 +113,35 @@ public class PlayGameActivity extends AppCompatActivity {
             ImageView v = (ImageView) LayoutInflater.from(parent.getContext())
                     .inflate(R.layout.hand_card_image_view, parent, false);
 
-            /*View.OnClickListener onClickListener = v1 -> {
+            View.OnClickListener onClickListener = v1 -> {
                 ImageView iv = (ImageView) v1;
-                Drawable frame = getResources().getDrawable(R.drawable.highlight_card_frame);
-                iv.setBackground(frame);
-                //PlayGameActivity.this.selectedCard = cards.get()
-                //JoinGameActivity.this.selected = cards.get(tv.getId());
+                int yOffset = 100;
+                if(!PlayGameActivity.this.selectedCards.containsKey(iv.getId())){
+                    Drawable frame = getResources().getDrawable(R.drawable.highlight_card_frame);
+                    iv.setBackground(frame);
+                    //PlayGameActivity.this.selectedCard = cards.get(iv.getId());
+                    PlayGameActivity.this.selectedCards.put(iv.getId(), cards.get(iv.getId()));
+                   /* ViewGroup.LayoutParams params = PlayGameActivity.this.recyclerView.getLayoutParams();
+                    params.height-=100;
+                    PlayGameActivity.this.recyclerView.setLayoutParams(params);*/
+                    iv.setY(iv.getY()-yOffset);
+                } else {
+                    Log.println(Log.INFO, TAG, "clicked on same card again");
+                    iv.setBackground(null);
+                    PlayGameActivity.this.selectedCards.remove(iv.getId());
+                    iv.setY(iv.getY()+yOffset);
+                    //PlayGameActivity.this.selectedCard = null;
+                }
             };
-            v.setOnClickListener(onClickListener);*/
+            //TODO?
+            v.setOnDragListener(new View.OnDragListener() {
+                @Override
+                public boolean onDrag(View v, DragEvent event) {
+                    return false;
+                }
+            });
+            v.setOnClickListener(onClickListener);
             ImageViewHolder vh = new ImageViewHolder(v);
-            Log.println(Log.INFO, TAG, "oncreateviewholder");
             return vh;
         }
 
