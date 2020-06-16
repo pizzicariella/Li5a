@@ -10,7 +10,7 @@ public interface DAO {
      * This methods saves a game object to storage.
      * @param game
      */
-    public void saveGame(Game game);
+    public long saveGame(Game game);
 
     /**
      * This method loads a game from storage.
