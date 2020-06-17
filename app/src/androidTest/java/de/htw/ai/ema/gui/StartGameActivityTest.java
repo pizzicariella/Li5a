@@ -1,5 +1,6 @@
-package de.htw.ai.ema;
+package de.htw.ai.ema.gui;
 
+import androidx.test.espresso.matcher.ViewMatchers;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
 import androidx.test.rule.ActivityTestRule;
@@ -8,6 +9,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import de.htw.ai.ema.R;
 import de.htw.ai.ema.gui.StartGameActivity;
 
 import static androidx.test.espresso.action.ViewActions.click;
@@ -27,7 +29,7 @@ public class StartGameActivityTest {
 
     @Test
     public void testElementsAreDisplayed(){
-        onView(withId(R.id.activity_start_game)).check(matches(isDisplayed()));
+        onView(ViewMatchers.withId(R.id.activity_start_game)).check(matches(isDisplayed()));
         onView(withId(R.id.enter_player_name_start)).check(matches(isDisplayed()));
         onView(withId(R.id.enter_player_name_start)).check(matches(withText("Enter your name")));
         onView(withId(R.id.button_host_game)).check(matches(isDisplayed()));

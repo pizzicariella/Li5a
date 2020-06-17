@@ -1,5 +1,7 @@
 package de.htw.ai.ema.persistence.dao;
 
+import android.app.Activity;
+
 import java.util.List;
 
 import de.htw.ai.ema.model.Game;

@@ -1,4 +1,4 @@
-package de.htw.ai.ema;
+package de.htw.ai.ema.gui;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -9,6 +9,7 @@ import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.test.espresso.matcher.BoundedMatcher;
+import androidx.test.espresso.matcher.ViewMatchers;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
 import androidx.test.rule.ActivityTestRule;
@@ -18,6 +19,8 @@ import org.hamcrest.TypeSafeMatcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import de.htw.ai.ema.R;
 import de.htw.ai.ema.gui.PlayGameActivity;
 import de.htw.ai.ema.model.Card;
 import de.htw.ai.ema.model.Rank;
@@ -40,7 +43,7 @@ public class PlayGameActivityTest {
 
     @Test
     public void elementsAreDisplayed(){
-        onView(withId(R.id.activity_play_game)).check(matches(isDisplayed()));
+        onView(ViewMatchers.withId(R.id.activity_play_game)).check(matches(isDisplayed()));
         onView(withId(R.id.recycler_view_hand_cards)).check(matches(isDisplayed()));
         //onView(withId(R.id.image_view_stack)).check(matches(isDisplayed()));
         //TODO check also for other players, cancel button etc

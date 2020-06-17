@@ -1,4 +1,4 @@
-package de.htw.ai.ema;
+package de.htw.ai.ema.gui;
 
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -16,7 +16,8 @@ import org.hamcrest.Matcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import de.htw.ai.ema.gui.JoinGameActivity;
+
+import de.htw.ai.ema.R;
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
@@ -36,7 +37,7 @@ public class JoinGameActivityTest {
 
     @Test
     public void testElementsAreDisplayed(){
-        onView(withId(R.id.activity_join_game)).check(matches(isDisplayed()));
+        onView(ViewMatchers.withId(R.id.activity_join_game)).check(matches(isDisplayed()));
         onView(withId(R.id.enter_player_name_join)).check(matches(isDisplayed()));
         onView(withId(R.id.enter_player_name_join)).check(matches(withText("Enter your name")));
         onView(withId(R.id.recycler_view_available_devices)).check(matches(isDisplayed()));

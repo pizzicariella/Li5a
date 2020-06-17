@@ -33,7 +33,6 @@ public class StartGameActivity extends AppCompatActivity {
         this.btConnector = new BluetoothConnector4Player(true);
         BluetoothProperties.setDeviceName(btConnector.getDeviceName());
         this.btProps = BluetoothProperties.getInstance();
-        //this.conHandler = new NToMConnectionHandler(btConnector.getDeviceName());
         this.conHandler = ConnectionProperties.getInstance().getConHandler();
     }
 
@@ -49,11 +48,9 @@ public class StartGameActivity extends AppCompatActivity {
         } catch (InterruptedException e) {
             Log.e(TAG, "Could not join accept Thread", e);
         }
-        //BluetoothProperties btProps = BluetoothProperties.getInstance();
         Map<String, BluetoothSocket> sockets = this.btProps.getSockets();
         if(sockets != null && sockets.size() == 3){
             //notify the other players
-            //byte[] connectedMessage = "connectingDone".getBytes();
             String connectedMessage = "connectingDone";
             for(BluetoothSocket socket: sockets.values()){
                 try{

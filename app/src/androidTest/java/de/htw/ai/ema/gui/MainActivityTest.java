@@ -1,5 +1,6 @@
-package de.htw.ai.ema;
+package de.htw.ai.ema.gui;
 
+import androidx.test.espresso.matcher.ViewMatchers;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
 import androidx.test.rule.ActivityTestRule;
@@ -8,6 +9,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import de.htw.ai.ema.R;
 import de.htw.ai.ema.gui.MainActivity;
 
 import static androidx.test.espresso.Espresso.onView;
@@ -27,7 +29,7 @@ public class MainActivityTest {
 
     @Test
     public void testElementsAreDisplayed(){
-        onView(withId(R.id.main_activity)).check(matches(isDisplayed()));
+        onView(ViewMatchers.withId(R.id.main_activity)).check(matches(isDisplayed()));
         onView(withId(R.id.game_name)).check(matches(isDisplayed()));
         onView(withId(R.id.game_name)).check(matches(withText("Play")));
         onView(withId(R.id.start_new_game_button)).check(matches(isDisplayed()));
