@@ -18,7 +18,7 @@ public interface DAO {
      * This method loads a game from storage.
      * @param id
      */
-    public Game loadGame(int id);
+    public Game loadGame(long id);
 
     /**
      * This method loads all games from storage.

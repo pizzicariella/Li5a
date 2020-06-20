@@ -1,14 +1,10 @@
 package de.htw.ai.ema.persistence.dao;
 
-import android.Manifest;
-import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.provider.BaseColumns;
-
-import androidx.core.app.ActivityCompat;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,31 +24,45 @@ import de.htw.ai.ema.model.Suit;
 import de.htw.ai.ema.persistence.database.Li5aContract;
 import de.htw.ai.ema.persistence.database.Li5aDbHelper;
 
+//TODO catch, handle and test exceptions in this class, aufräumen!!!!s
 public class DbDao implements DAO {
 
-    Li5aDbHelper helper;
-    //private final int PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 1;
-
+    private Li5aDbHelper helper;
+    private final String TAG = "DbDao";
 
     public DbDao(Context context){
-        helper = new Li5aDbHelper(context);
+        //helper = new Li5aDbHelper(context);
+        this.helper = Li5aDbHelper.getInstance(context);
     }
 
     @Override
     public long saveGame(Game game) {
-        /*ActivityCompat.requestPermissions(activity, new String[]
-                        {Manifest.permission.WRITE_EXTERNAL_STORAGE},
-                PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);*/
+
+        String cardInQuestion = game.getPlayers().get("p2").getHand().getCards().get(4).getName();
+        SQLiteDatabase dbReadable = helper.getReadableDatabase();
         SQLiteDatabase db = helper.getWritableDatabase();
 
+        Cursor cardCursor = db.query(Li5aContract.CardEntry.TABLE_NAME, null, null,
+                null, null, null, null);
         HashMap<String, Long> cardIds = new HashMap<>();
-        Card[] allCards = game.getDeck().getCards();
-        for (Card c: allCards){
-            ContentValues cardVals = new ContentValues();
-            cardVals.put(Li5aContract.CardEntry.COLUMN_NAME_SUIT, c.getSuit().name());
-            cardVals.put(Li5aContract.CardEntry.COLUMN_NAME_RANK, c.getRank().name());
-            cardIds.put(c.getName(), db.insert(Li5aContract.CardEntry.TABLE_NAME, null, cardVals));
+        if(cardCursor.getColumnCount() != 52){
+            db.execSQL("DELETE FROM "+Li5aContract.CardEntry.TABLE_NAME);
+            Card[] allCards = game.getDeck().getCards();
+            for (Card c: allCards){
+                ContentValues cardVals = new ContentValues();
+                cardVals.put(Li5aContract.CardEntry.COLUMN_NAME_SUIT, c.getSuit().name());
+                cardVals.put(Li5aContract.CardEntry.COLUMN_NAME_RANK, c.getRank().name());
+                cardIds.put(c.getName(), db.insert(Li5aContract.CardEntry.TABLE_NAME, null, cardVals));
+            }
+        } else {
+            while (cardCursor.moveToNext()){
+                String suit = cardCursor.getString(cardCursor.getColumnIndex(Li5aContract.CardEntry.COLUMN_NAME_SUIT));
+                String rank = cardCursor.getString(cardCursor.getColumnIndex(Li5aContract.CardEntry.COLUMN_NAME_RANK));
+                long id = cardCursor.getLong(cardCursor.getColumnIndex(BaseColumns._ID));
+                cardIds.put((suit+rank).toUpperCase(), id);
+            }
         }
+        cardCursor.close();
 
         Map<String, Player> players = game.getPlayers();
         ArrayList<Long> playerIds = new ArrayList<>();
@@ -60,12 +70,14 @@ public class DbDao implements DAO {
 
             List<Card> handCards = p.getHand().getCards();
             ContentValues handVals = new ContentValues();
-            int cardIndex = 1;
+            int cardIndex = 0;
             for(Card c: handCards){
                 handVals.put("card"+cardIndex, cardIds.get(c.getName()));
                 cardIndex++;
             }
-            Long handId = db.insert(Li5aContract.HandEntry.TABLE_NAME, null, handVals);
+            /*Long handId = db.insert(Li5aContract.HandEntry.TABLE_NAME,
+                    Li5aContract.HandEntry.COLUMN_NAME_CARD1, handVals);*/
+            long handId = db.insert(Li5aContract.HandEntry.TABLE_NAME, null, handVals);
 
             List<Card> accountCards = p.getAccount().getCards();
             ContentValues accountVals = new ContentValues();
@@ -74,7 +86,9 @@ public class DbDao implements DAO {
                 accountVals.put("card"+accountCardIndex, cardIds.get(c.getName()));
                 accountCardIndex++;
             }
-            Long accountId = db.insert(Li5aContract.AccountEntry.TABLE_NAME, null, accountVals);
+            Long accountId = db.insert(Li5aContract.AccountEntry.TABLE_NAME,
+                    Li5aContract.AccountEntry.COLUMN_NAME_CARD0, accountVals);
+            //long accountId = db.insert(Li5aContract.AccountEntry.TABLE_NAME, null, accountVals);
 
             ContentValues playerVals = new ContentValues();
             playerVals.put(Li5aContract.PlayerEntry.COLUMN_NAME_NAME, p.getName());
@@ -85,14 +99,18 @@ public class DbDao implements DAO {
             playerIds.add(db.insert(Li5aContract.PlayerEntry.TABLE_NAME, null, playerVals));
         }
 
+        long stackId;
         List<Card> stackCards = game.getCurrentRound().getCurrentCycle().getStack().getCards();
+
         ContentValues stackVals = new ContentValues();
         int stackCardIndex = 1;
-        for (Card c: stackCards){
-            stackVals.put("card"+stackCardIndex, cardIds.get(c.getName()));
+        for (Card c : stackCards) {
+            stackVals.put("card" + stackCardIndex, cardIds.get(c.getName()));
             stackCardIndex++;
         }
-        long stackId = db.insert(Li5aContract.StackEntry.TABLE_NAME, null, stackVals);
+        /*long stackId = db.insert(Li5aContract.StackEntry.TABLE_NAME,
+                Li5aContract.StackEntry.COLUMN_NAME_CARD1, stackVals);*/
+        stackId = db.insert(Li5aContract.StackEntry.TABLE_NAME, null, stackVals);
 
         ContentValues cycleVals = new ContentValues();
         cycleVals.put(Li5aContract.CycleEntry.COLUMN_NAME_STACK, stackId);
@@ -116,12 +134,13 @@ public class DbDao implements DAO {
 
         long id = db.insert(Li5aContract.GameEntry.TABLE_NAME, null, gameVals);
         db.close();
+        dbReadable.close();
         return id;
     }
 
 
     @Override
-    public Game loadGame(int id) {
+    public Game loadGame(long id) {
         SQLiteDatabase db = helper.getReadableDatabase();
 
         Cursor cardCursor = db.query(Li5aContract.CardEntry.TABLE_NAME, null, null,
@@ -156,15 +175,19 @@ public class DbDao implements DAO {
                     playerSelectionArgs, null, null, null);
             playerCursor.moveToNext();
             Player p = new Player(playerCursor.getString(playerCursor.getColumnIndex(Li5aContract.PlayerEntry.COLUMN_NAME_NAME)));
-            long handId = playerCursor.getInt(playerCursor.getColumnIndex(Li5aContract.PlayerEntry.COLUMN_NAME_HAND));
+            long handId = playerCursor.getLong(playerCursor.getColumnIndex(Li5aContract.PlayerEntry.COLUMN_NAME_HAND));
             String[] handSelectionArgs = {String.valueOf(handId)};
             Cursor handCursor = db.query(Li5aContract.HandEntry.TABLE_NAME, null, selection,
                     handSelectionArgs, null, null, null);
             List<Card> handCards = new ArrayList<>();
-            handCursor.moveToNext();
-            for(int i = 0; i<13; i++){
-                if(!handCursor.isNull(i)){
-                    handCards.add(allCards.get(handCursor.getInt(i)));
+            //handCursor.moveToNext();
+            if(handCursor.moveToFirst()){
+                int cardIndex = 0;
+                for(int i = 0; i<13; i++){
+                    if(!handCursor.isNull(handCursor.getColumnIndex("card"+i))){
+                        long cardId = handCursor.getLong(handCursor.getColumnIndex("card"+i));
+                        handCards.add(allCards.get(cardId));
+                    }
                 }
             }
             handCursor.close();
@@ -172,15 +195,19 @@ public class DbDao implements DAO {
             h.setCards(handCards);
             p.setHand(h);
 
-            long accountId = playerCursor.getInt(playerCursor.getColumnIndex(Li5aContract.PlayerEntry.COLUMN_NAME_ACCOUNT));
+            long accountId = playerCursor.getLong(playerCursor.getColumnIndex(Li5aContract.PlayerEntry.COLUMN_NAME_ACCOUNT));
             String[] accountSelectionArgs = {String.valueOf(accountId)};
             Cursor accountCursor = db.query(Li5aContract.AccountEntry.TABLE_NAME, null, selection,
                     accountSelectionArgs, null, null, null);
             List<Card> accountCards = new ArrayList<>();
-            accountCursor.moveToNext();
-            for(int i = 0; i<4; i++){
-                if(!accountCursor.isNull(i)){
-                    accountCards.add(allCards.get(accountCursor.getInt(i)));
+            //accountCursor.moveToNext();
+            if(accountCursor.moveToFirst()){
+                for(int i = 0; i<4; i++){
+                    if(!accountCursor.isNull(accountCursor.getColumnIndex("card"+i))){
+                        accountCards.add(
+                                allCards.get(accountCursor.getLong(
+                                        accountCursor.getColumnIndex("card"+i))));
+                    }
                 }
             }
             accountCursor.close();
@@ -226,13 +253,15 @@ public class DbDao implements DAO {
         String[] stackSelectionArgs = {String.valueOf(stackId)};
         Cursor stackCursor = db.query(Li5aContract.StackEntry.TABLE_NAME, null, selection,
                 stackSelectionArgs, null, null, null);
-        stackCursor.moveToNext();
         List<Card> stackCards = new ArrayList<>();
-        for(int i = 0; i<4; i++){
-            if(!stackCursor.isNull(i)){
-                stackCards.add(allCards.get(stackCursor.getLong(i)));
+        if(stackCursor.moveToFirst()){
+            for(int i = 0; i<4; i++){
+                if(!stackCursor.isNull(i)){
+                    stackCards.add(allCards.get(stackCursor.getLong(i)));
+                }
             }
         }
+
         stackCursor.close();
         Stack s = new Stack();
         for (Card card: stackCards){

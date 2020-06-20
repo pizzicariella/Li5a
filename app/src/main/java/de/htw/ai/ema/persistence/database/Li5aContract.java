@@ -100,6 +100,7 @@ public class Li5aContract {
 
     public static class HandEntry implements BaseColumns {
         public static final String TABLE_NAME = "hand";
+        public static final String COLUMN_NAME_CARD0 = "card0";
         public static final String COLUMN_NAME_CARD1 = "card1";
         public static final String COLUMN_NAME_CARD2 = "card2";
         public static final String COLUMN_NAME_CARD3 = "card3";
@@ -112,11 +113,11 @@ public class Li5aContract {
         public static final String COLUMN_NAME_CARD10 = "card10";
         public static final String COLUMN_NAME_CARD11 = "card11";
         public static final String COLUMN_NAME_CARD12 = "card12";
-        public static final String COLUMN_NAME_CARD13 = "card13";
 
         public static final String SQL_CREATE_ENTRIES =
                 "CREATE TABLE " + HandEntry.TABLE_NAME + " (" +
                         HandEntry._ID + " INTEGER PRIMARY KEY," +
+                        HandEntry.COLUMN_NAME_CARD0 + " INTEGER," +
                         HandEntry.COLUMN_NAME_CARD1 + " INTEGER," +
                         HandEntry.COLUMN_NAME_CARD2 + " INTEGER," +
                         HandEntry.COLUMN_NAME_CARD3 + " INTEGER," +
@@ -128,8 +129,7 @@ public class Li5aContract {
                         HandEntry.COLUMN_NAME_CARD9 + " INTEGER," +
                         HandEntry.COLUMN_NAME_CARD10 + " INTEGER," +
                         HandEntry.COLUMN_NAME_CARD11 + " INTEGER," +
-                        HandEntry.COLUMN_NAME_CARD12 + " INTEGER," +
-                        HandEntry.COLUMN_NAME_CARD13 + " INTEGER)";
+                        HandEntry.COLUMN_NAME_CARD12 + " INTEGER)";
 
         public static final String SQL_DELETE_ENTRIES =
                 "DROP TABLE IF EXISTS " + HandEntry.TABLE_NAME;
