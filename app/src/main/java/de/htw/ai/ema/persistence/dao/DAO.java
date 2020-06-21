@@ -3,6 +3,7 @@ package de.htw.ai.ema.persistence.dao;
 import android.app.Activity;
 
 import java.util.List;
+import java.util.Map;
 
 import de.htw.ai.ema.model.Game;
 
@@ -21,10 +22,10 @@ public interface DAO {
     public Game loadGame(long id);
 
     /**
-     * This method loads all games from storage.
+     * This method loads characteristics of all games, including id, from storage.
      * @return
      */
-    public List<Game> getAllGames();
+    public Map<String, Long> getAllGameIds();
 
     /**
      * This method updates an existing game object.

@@ -60,6 +60,7 @@ public class Li5aContract {
 
     public static class GameEntry implements BaseColumns{
         public static final String TABLE_NAME = "game";
+        public static final String COLUMN_NAME_NAME = "name";
         public static final String COLUMN_NAME_DATE = "date";
         public static final String COLUMN_NAME_PLAYER0 = "player0";
         public static final String COLUMN_NAME_PLAYER1 = "player1";
@@ -71,6 +72,7 @@ public class Li5aContract {
         public static final String SQL_CREATE_ENTRIES =
                 "CREATE TABLE " + GameEntry.TABLE_NAME + " (" +
                         GameEntry._ID + " INTEGER PRIMARY KEY," +
+                        GameEntry.COLUMN_NAME_NAME + " TEXT," +
                         GameEntry.COLUMN_NAME_DATE + " NUMERIC," +
                         GameEntry.COLUMN_NAME_PLAYER0 + " INTEGER," +
                         GameEntry.COLUMN_NAME_PLAYER1 + " INTEGER," +
