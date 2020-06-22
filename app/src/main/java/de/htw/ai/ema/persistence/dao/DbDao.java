@@ -5,7 +5,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.provider.BaseColumns;
-import android.widget.ArrayAdapter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -60,6 +59,7 @@ public class DbDao implements DAO {
         long roundId = db.insert(Li5aContract.GameRoundEntry.TABLE_NAME, null, gameRoundVals);
 
         ContentValues gameVals = new ContentValues();
+        gameVals.put(Li5aContract.GameEntry.COLUMN_NAME_NAME, game.getName());
         gameVals.put(Li5aContract.GameEntry.COLUMN_NAME_DATE, System.currentTimeMillis());
         gameVals.put(Li5aContract.GameEntry.COLUMN_NAME_PLAYER0, playerIds.get(0));
         gameVals.put(Li5aContract.GameEntry.COLUMN_NAME_PLAYER1, playerIds.get(1));
@@ -75,7 +75,7 @@ public class DbDao implements DAO {
 
 
     @Override
-    public Game loadGame(long id) {
+    public Game loadGame(long id) throws Exception {
         SQLiteDatabase db = helper.getReadableDatabase();
 
         Cursor cardCursor = db.query(Li5aContract.CardEntry.TABLE_NAME, null, null,
@@ -95,257 +95,359 @@ public class DbDao implements DAO {
 
         Cursor gameCursor = db.query(Li5aContract.GameEntry.TABLE_NAME, null, selection,
                 gameSelectionArgs, null, null, null);
-        gameCursor.moveToNext();
 
-        ArrayList<Long> playerIds = getPlayerIds(gameCursor);
+        if(gameCursor.moveToNext()) {
 
-        HashMap<String, Player> players = new HashMap<>();
-        for(Long pId: playerIds){
-            String[] playerSelectionArgs = {String.valueOf(pId)};
-            Cursor playerCursor = db.query(Li5aContract.PlayerEntry.TABLE_NAME, null, selection,
-                    playerSelectionArgs, null, null, null);
-            playerCursor.moveToNext();
-            Player p = new Player(playerCursor.getString(playerCursor.getColumnIndex(Li5aContract.PlayerEntry.COLUMN_NAME_NAME)));
-            long handId = playerCursor.getLong(playerCursor.getColumnIndex(Li5aContract.PlayerEntry.COLUMN_NAME_HAND));
-            String[] handSelectionArgs = {String.valueOf(handId)};
-            Cursor handCursor = db.query(Li5aContract.HandEntry.TABLE_NAME, null, selection,
-                    handSelectionArgs, null, null, null);
-            List<Card> handCards = new ArrayList<>();
-            //handCursor.moveToNext();
-            if(handCursor.moveToFirst()){
-                int cardIndex = 0;
-                for(int i = 0; i<13; i++){
-                    if(!handCursor.isNull(handCursor.getColumnIndex("card"+i))){
-                        long cardId = handCursor.getLong(handCursor.getColumnIndex("card"+i));
-                        handCards.add(allCards.get(cardId));
+            ArrayList<Long> playerIds = getPlayerIds(gameCursor);
+
+            HashMap<String, Player> players = new HashMap<>();
+            for (Long pId : playerIds) {
+                String[] playerSelectionArgs = {String.valueOf(pId)};
+                Cursor playerCursor = db.query(Li5aContract.PlayerEntry.TABLE_NAME, null, selection,
+                        playerSelectionArgs, null, null, null);
+                if(playerCursor.moveToNext()) {
+                    Player p = new Player(playerCursor.getString(playerCursor.getColumnIndex(Li5aContract.PlayerEntry.COLUMN_NAME_NAME)));
+                    long handId = playerCursor.getLong(playerCursor.getColumnIndex(Li5aContract.PlayerEntry.COLUMN_NAME_HAND));
+                    String[] handSelectionArgs = {String.valueOf(handId)};
+                    Cursor handCursor = db.query(Li5aContract.HandEntry.TABLE_NAME, null, selection,
+                            handSelectionArgs, null, null, null);
+                    List<Card> handCards = new ArrayList<>();
+                    //handCursor.moveToNext();
+                    if (handCursor.moveToFirst()) {
+                        for (int i = 0; i < 13; i++) {
+                            if (!handCursor.isNull(handCursor.getColumnIndex("card" + i))) {
+                                long cardId = handCursor.getLong(handCursor.getColumnIndex("card" + i));
+                                handCards.add(allCards.get(cardId));
+                            }
+                        }
                     }
-                }
-            }
-            handCursor.close();
-            Hand h = new Hand();
-            h.setCards(handCards);
-            p.setHand(h);
+                    handCursor.close();
+                    Hand h = new Hand();
+                    h.setCards(handCards);
+                    p.setHand(h);
 
-            long accountId = playerCursor.getLong(playerCursor.getColumnIndex(Li5aContract.PlayerEntry.COLUMN_NAME_ACCOUNT));
-            String[] accountSelectionArgs = {String.valueOf(accountId)};
-            Cursor accountCursor = db.query(Li5aContract.AccountEntry.TABLE_NAME, null, selection,
-                    accountSelectionArgs, null, null, null);
-            List<Card> accountCards = new ArrayList<>();
-            //accountCursor.moveToNext();
-            if(accountCursor.moveToFirst()){
-                for(int i = 0; i<4; i++){
-                    if(!accountCursor.isNull(accountCursor.getColumnIndex("card"+i))){
-                        accountCards.add(
-                                allCards.get(accountCursor.getLong(
-                                        accountCursor.getColumnIndex("card"+i))));
+                    long accountId = playerCursor.getLong(playerCursor.getColumnIndex(Li5aContract.PlayerEntry.COLUMN_NAME_ACCOUNT));
+                    String[] accountSelectionArgs = {String.valueOf(accountId)};
+                    Cursor accountCursor = db.query(Li5aContract.AccountEntry.TABLE_NAME, null, selection,
+                            accountSelectionArgs, null, null, null);
+                    List<Card> accountCards = new ArrayList<>();
+                    //accountCursor.moveToNext();
+                    if (accountCursor.moveToFirst()) {
+                        for (int i = 0; i < 4; i++) {
+                            if (!accountCursor.isNull(accountCursor.getColumnIndex("card" + i))) {
+                                accountCards.add(
+                                        allCards.get(accountCursor.getLong(
+                                                accountCursor.getColumnIndex("card" + i))));
+                            }
+                        }
                     }
+                    accountCursor.close();
+                    Account a = new Account();
+                    for (Card c : accountCards) {
+                        a.addCard(c);
+                    }
+                    p.setAccount(a);
+
+                    p.setTotalScore(playerCursor.getInt(playerCursor.getColumnIndex(Li5aContract.PlayerEntry.COLUMN_NAME_TOTALSCORE)));
+                    int lastCollector = playerCursor.getInt(playerCursor.getColumnIndex(Li5aContract.PlayerEntry.COLUMN_NAME_LAST_COLLECTOR));
+                    playerCursor.close();
+                    p.setLastCollector(lastCollector > 0);
+
+                    players.put(p.getName(), p);
+                } else {
+                    //TODO specify
+                    throw new Exception("Not enough players to create game");
                 }
             }
-            accountCursor.close();
-            Account a = new Account();
-            for(Card c: accountCards){
-                a.addCard(c);
-            }
-            p.setAccount(a);
 
-            p.setTotalScore(playerCursor.getInt(playerCursor.getColumnIndex(Li5aContract.PlayerEntry.COLUMN_NAME_TOTALSCORE)));
-            int lastCollector = playerCursor.getInt(playerCursor.getColumnIndex(Li5aContract.PlayerEntry.COLUMN_NAME_LAST_COLLECTOR));
-            playerCursor.close();
-            p.setLastCollector(lastCollector > 0 ? true : false);
+            Game g = new Game(players);
+            String name = gameCursor.getString(gameCursor.getColumnIndex(Li5aContract.GameEntry.COLUMN_NAME_NAME));
+            g.setName(name);
+            int over = gameCursor.getInt(gameCursor.getColumnIndex(Li5aContract.GameEntry.COLUMN_NAME_OVER));
+            g.setOver(over > 0);
 
-            players.put(p.getName(), p);
-        }
+            long roundId = gameCursor.getLong(gameCursor.getColumnIndex(Li5aContract.GameEntry.COLUMN_NAME_GAMEROUND));
+            gameCursor.close();
+            String[] roundSelectionArgs = {String.valueOf(roundId)};
+            Cursor roundCursor = db.query(Li5aContract.GameRoundEntry.TABLE_NAME, null, selection,
+                    roundSelectionArgs, null, null, null);
+            if(roundCursor.moveToNext()) {
+                GameRound gr = new GameRound();
+                gr.setRoundNumber(roundCursor.getInt(roundCursor.getColumnIndex(Li5aContract.GameRoundEntry.COLUMN_NAME_ROUND_NUMBER)));
 
-        Game g = new Game(players);
-        int over = gameCursor.getInt(gameCursor.getColumnIndex(Li5aContract.GameEntry.COLUMN_NAME_OVER));
-        g.setOver(over > 0 ? true : false);
+                long cycleId = roundCursor.getLong(roundCursor.getColumnIndex(Li5aContract.GameRoundEntry.COLUMN_NAME_CYCLE));
+                roundCursor.close();
+                String[] cycleSelectionArgs = {String.valueOf(cycleId)};
+                Cursor cycleCursor = db.query(Li5aContract.CycleEntry.TABLE_NAME, null, selection,
+                        cycleSelectionArgs, null, null, null);
+                if(cycleCursor.moveToNext()) {
+                    Cycle c = new Cycle();
+                    c.setCycleNumber(cycleCursor.getInt(cycleCursor.getColumnIndex(Li5aContract.CycleEntry.COLUMN_NAME_CYCLE_NUMBER)));
 
-        long roundId = gameCursor.getLong(gameCursor.getColumnIndex(Li5aContract.GameEntry.COLUMN_NAME_GAMEROUND));
-        gameCursor.close();
-        String[] roundSelectionArgs = {String.valueOf(roundId)};
-        Cursor roundCursor = db.query(Li5aContract.GameRoundEntry.TABLE_NAME, null, selection,
-                roundSelectionArgs, null, null, null);
-        roundCursor.moveToNext();
-        GameRound gr = new GameRound();
-        gr.setRoundNumber(roundCursor.getInt(roundCursor.getColumnIndex(Li5aContract.GameRoundEntry.COLUMN_NAME_ROUND_NUMBER)));
+                    long stackId = cycleCursor.getLong(cycleCursor.getColumnIndex(Li5aContract.CycleEntry.COLUMN_NAME_STACK));
+                    cycleCursor.close();
 
-        long cycleId = roundCursor.getLong(roundCursor.getColumnIndex(Li5aContract.GameRoundEntry.COLUMN_NAME_CYCLE));
-        roundCursor.close();
-        String[] cycleSelectionArgs = {String.valueOf(cycleId)};
-        Cursor cycleCursor = db.query(Li5aContract.CycleEntry.TABLE_NAME, null, selection,
-                cycleSelectionArgs, null, null, null);
-        cycleCursor.moveToNext();
-        Cycle c = new Cycle();
-        c.setCycleNumber(cycleCursor.getInt(cycleCursor.getColumnIndex(Li5aContract.CycleEntry.COLUMN_NAME_CYCLE_NUMBER)));
+                    String[] stackSelectionArgs = {String.valueOf(stackId)};
+                    Cursor stackCursor = db.query(Li5aContract.StackEntry.TABLE_NAME, null, selection,
+                            stackSelectionArgs, null, null, null);
+                    List<Card> stackCards = new ArrayList<>();
+                    if (stackCursor.moveToFirst()) {
+                        for (int i = 1; i <= 4; i++) {
+                            if (!stackCursor.isNull(i)) {
+                                Card stackCard = allCards.get(stackCursor.getLong(i));
+                                stackCards.add(stackCard);
+                            }
+                        }
+                    }
 
-        long stackId = cycleCursor.getLong(cycleCursor.getColumnIndex(Li5aContract.CycleEntry.COLUMN_NAME_STACK));
-        cycleCursor.close();
+                    stackCursor.close();
+                    Stack s = new Stack();
+                    for (Card card : stackCards) {
+                        s.addCard(card);
+                    }
 
-        String[] stackSelectionArgs = {String.valueOf(stackId)};
-        Cursor stackCursor = db.query(Li5aContract.StackEntry.TABLE_NAME, null, selection,
-                stackSelectionArgs, null, null, null);
-        List<Card> stackCards = new ArrayList<>();
-        if(stackCursor.moveToFirst()){
-            for(int i = 0; i<4; i++){
-                if(!stackCursor.isNull(i)){
-                    stackCards.add(allCards.get(stackCursor.getLong(i)));
+                    c.setStack(s);
+                    gr.setCurrentCycle(c);
                 }
+                g.setCurrentRound(gr);
             }
+
+            db.close();
+
+            return g;
+        } else {
+            //TODO specify this exception
+            throw new Exception("Id not found.");
         }
-
-        stackCursor.close();
-        Stack s = new Stack();
-        for (Card card: stackCards){
-            s.addCard(card);
-        }
-
-        c.setStack(s);
-        gr.setCurrentCycle(c);
-        g.setCurrentRound(gr);
-
-        db.close();
-
-        return g;
     }
 
     @Override
-    public Map<String, Long> getAllGameIds() {
+    public Map<Long, String> getAllGameIds() {
         SQLiteDatabase db = helper.getReadableDatabase();
 
         String[] columns = {BaseColumns._ID, Li5aContract.GameEntry.COLUMN_NAME_NAME,
                 Li5aContract.GameEntry.COLUMN_NAME_DATE};
         Cursor gameCursor = db.query(Li5aContract.GameEntry.TABLE_NAME, columns, null,
                 null, null, null, null);
-        Map<String, Long> allGames = new HashMap<>();
+        Map<Long, String> allGames = new HashMap<>();
         while (gameCursor.moveToNext()){
-            String name = gameCursor.getColumnName(
+            String name = gameCursor.getString(
                     gameCursor.getColumnIndex(Li5aContract.GameEntry.COLUMN_NAME_NAME));
             long timestamp = gameCursor.getLong(
                     gameCursor.getColumnIndex(Li5aContract.GameEntry.COLUMN_NAME_DATE));
             long id = gameCursor.getLong(gameCursor.getColumnIndex(BaseColumns._ID));
             String nameAndTs = name+"$"+timestamp;
-            allGames.put(nameAndTs, id);
+            allGames.put(id, nameAndTs);
         }
+        gameCursor.close();
         db.close();
         return allGames;
     }
 
     //TODO write test
     @Override
-    public void updateGame(int id, Game game) {
+    public boolean updateGame(long id, Game game) {
         SQLiteDatabase db = helper.getWritableDatabase();
-
+        boolean updateSuccessful = true;
         Map<String, Long> cardIds = getCardDict(db, game);
         Map<String, Player> players = game.getPlayers();
 
         String selection = BaseColumns._ID + " = ?";
-        String[] gameSelectionArgs = {String.valueOf(id)};
+        Cursor gameCursor = getGameCursorForUpdateOrDelete(db, id, selection);
+        if(gameCursor.moveToNext()) {
+
+            ArrayList<Long> playerIds = getPlayerIds(gameCursor);
+            long roundId = gameCursor.getLong(gameCursor.getColumnIndex(Li5aContract.GameEntry.COLUMN_NAME_GAMEROUND));
+            gameCursor.close();
+
+            int playerIndex = 0;
+            for (Player p: players.values()) {
+                String[] playerSelectionArgs = {String.valueOf(playerIds.get(playerIndex))};
+                String[] playerColumns = {Li5aContract.PlayerEntry.COLUMN_NAME_HAND,
+                        Li5aContract.PlayerEntry.COLUMN_NAME_ACCOUNT};
+                Cursor playerCursor = db.query(Li5aContract.PlayerEntry.TABLE_NAME, playerColumns, selection,
+                        playerSelectionArgs, null, null, null);
+                if(playerCursor.moveToNext()) {
+                    long handId = playerCursor.getLong(playerCursor.getColumnIndex(Li5aContract.PlayerEntry.COLUMN_NAME_HAND));
+                    long accountId = playerCursor.getLong(playerCursor.getColumnIndex(Li5aContract.PlayerEntry.COLUMN_NAME_ACCOUNT));
+                    playerCursor.close();
+                    String[] handSelectionArgs = {String.valueOf(handId)};
+
+                    List<Card> handCards = p.getHand().getCards();
+                    ContentValues handVals = new ContentValues();
+
+                    for (int j = 0; j < 13; j++) {
+                        if (j < handCards.size()) {
+                            handVals.put("card" + j, cardIds.get(handCards.get(j).getName()));
+                        } else {
+                            handVals.put("card" + j, (String) null);
+                        }
+                    }
+
+                    db.update(Li5aContract.HandEntry.TABLE_NAME, handVals, selection, handSelectionArgs);
+
+                    List<Card> accountCards = p.getAccount().getCards();
+                    ContentValues accountVals = new ContentValues();
+                    for (int j = 0; j < 4; j++) {
+                        if (j < accountCards.size()) {
+                            accountVals.put("card" + j, cardIds.get(accountCards.get(j).getName()));
+                        } else {
+                            accountVals.put("card" + j, (String) null);
+                        }
+                    }
+                    String[] accountSelectionArgs = {String.valueOf(accountId)};
+                    db.update(Li5aContract.AccountEntry.TABLE_NAME, accountVals, selection, accountSelectionArgs);
+
+                    ContentValues playerVals = new ContentValues();
+                    playerVals.put(Li5aContract.PlayerEntry.COLUMN_NAME_TOTALSCORE, p.getTotalScore());
+                    db.update(Li5aContract.PlayerEntry.TABLE_NAME, playerVals, selection, playerSelectionArgs);
+                }
+                playerIndex++;
+            }
+
+            Cursor roundCursor = getRoundCursorForUpdateOrDelete(db, roundId, selection);
+            if(roundCursor.moveToNext()) {
+
+                long cycleId = roundCursor.getLong(roundCursor.getColumnIndex(Li5aContract.GameRoundEntry.COLUMN_NAME_CYCLE));
+                roundCursor.close();
+
+                Cursor cycleCursor = getCycleCursorForUpdateOrDelete(db, cycleId, selection);
+                if(cycleCursor.moveToNext()) {
+
+                    long stackId = cycleCursor.getLong(cycleCursor.getColumnIndex(Li5aContract.CycleEntry.COLUMN_NAME_STACK));
+                    cycleCursor.close();
+
+                    List<Card> stackCards = game.getCurrentRound().getCurrentCycle().getStack().getCards();
+                    ContentValues stackVals = new ContentValues();
+                    for (int j = 1; j <= 4; j++) {
+                        if (j < stackCards.size()) {
+                            stackVals.put("card" + j, cardIds.get(stackCards.get(j).getName()));
+                        } else {
+                            stackVals.put("card" + j, (String) null);
+                        }
+                    }
+
+                    String[] stackSelectionArgs = {String.valueOf(stackId)};
+                    db.update(Li5aContract.StackEntry.TABLE_NAME, stackVals, selection, stackSelectionArgs);
+                }
+
+                ContentValues cycleVals = new ContentValues();
+                cycleVals.put(Li5aContract.CycleEntry.COLUMN_NAME_CYCLE_NUMBER,
+                        game.getCurrentRound().getCurrentCycle().getCycleNumber());
+
+                String[] cycleSelectionArgs = {String.valueOf(cycleId)};
+                db.update(Li5aContract.CycleEntry.TABLE_NAME, cycleVals, selection, cycleSelectionArgs);
+            }
+
+            ContentValues roundVals = new ContentValues();
+            roundVals.put(Li5aContract.GameRoundEntry.COLUMN_NAME_ROUND_NUMBER,
+                    game.getCurrentRound().getRoundNumber());
+            String[] roundSelectionArgs = {String.valueOf(roundId)};
+            db.update(Li5aContract.GameRoundEntry.TABLE_NAME, roundVals, selection, roundSelectionArgs);
+
+            ContentValues gameVals = new ContentValues();
+            gameVals.put(Li5aContract.GameEntry.COLUMN_NAME_DATE, System.currentTimeMillis());
+            gameVals.put(Li5aContract.GameEntry.COLUMN_NAME_OVER, game.isOver());
+            String[] gameSelectionArgs = {String.valueOf(id)};
+            db.update(Li5aContract.GameEntry.TABLE_NAME, gameVals, selection, gameSelectionArgs);
+        } else {
+            updateSuccessful = false;
+        }
+
+        db.close();
+        return updateSuccessful;
+    }
+
+    @Override
+    public boolean deleteGame(long id) {
+        SQLiteDatabase db = helper.getWritableDatabase();
+        boolean deleteSuccessful = true;
+        String selection = BaseColumns._ID + " LIKE ?";
+
+        Cursor gameCursor = getGameCursorForUpdateOrDelete(db, id, selection);
+        if(gameCursor.moveToNext()) {
+            ArrayList<Long> playerIds = getPlayerIds(gameCursor);
+            long roundId = gameCursor.getLong(gameCursor.getColumnIndex(Li5aContract.GameEntry.COLUMN_NAME_GAMEROUND));
+            gameCursor.close();
+
+            for (int i = 0; i < 4; i++) {
+                String[] playerSelectionArgs = {String.valueOf(playerIds.get(i))};
+                String[] playerColumns = {Li5aContract.PlayerEntry.COLUMN_NAME_HAND,
+                        Li5aContract.PlayerEntry.COLUMN_NAME_ACCOUNT};
+                Cursor playerCursor = db.query(Li5aContract.PlayerEntry.TABLE_NAME, playerColumns, selection,
+                        playerSelectionArgs, null, null, null);
+                if(playerCursor.moveToNext()) {
+                    long handId = playerCursor.getLong(playerCursor.getColumnIndex(Li5aContract.PlayerEntry.COLUMN_NAME_HAND));
+                    long accountId = playerCursor.getLong(playerCursor.getColumnIndex(Li5aContract.PlayerEntry.COLUMN_NAME_ACCOUNT));
+                    playerCursor.close();
+
+                    String[] handSelectionArgs = {String.valueOf(handId)};
+                    db.delete(Li5aContract.HandEntry.TABLE_NAME, selection, handSelectionArgs);
+
+                    String[] accountSelectionsArgs = {String.valueOf(accountId)};
+                    db.delete(Li5aContract.AccountEntry.TABLE_NAME, selection, accountSelectionsArgs);
+                }
+
+                db.delete(Li5aContract.PlayerEntry.TABLE_NAME, selection, playerSelectionArgs);
+            }
+
+            Cursor roundCursor = getRoundCursorForUpdateOrDelete(db, roundId, selection);
+            if(roundCursor.moveToNext()) {
+
+                long cycleId = roundCursor.getLong(roundCursor.getColumnIndex(Li5aContract.GameRoundEntry.COLUMN_NAME_CYCLE));
+                roundCursor.close();
+
+                Cursor cycleCursor = getCycleCursorForUpdateOrDelete(db, cycleId, selection);
+                if(cycleCursor.moveToNext()) {
+
+                    long stackId = cycleCursor.getLong(cycleCursor.getColumnIndex(Li5aContract.CycleEntry.COLUMN_NAME_STACK));
+                    cycleCursor.close();
+
+                    String[] stackSelectionArgs = {String.valueOf(stackId)};
+                    db.delete(Li5aContract.StackEntry.TABLE_NAME, selection, stackSelectionArgs);
+                }
+
+                String[] cycleSelectionArgs = {String.valueOf(cycleId)};
+                db.delete(Li5aContract.CycleEntry.TABLE_NAME, selection, cycleSelectionArgs);
+            }
+
+            String[] roundSelectionArgs = {String.valueOf(roundId)};
+            db.delete(Li5aContract.GameRoundEntry.TABLE_NAME, selection, roundSelectionArgs);
+
+            String[] gameSelectionArgs = {String.valueOf(id)};
+            db.delete(Li5aContract.GameEntry.TABLE_NAME, selection, gameSelectionArgs);
+        } else {
+            deleteSuccessful = false;
+        }
+
+        db.close();
+        return deleteSuccessful;
+    }
+
+    private Cursor getCycleCursorForUpdateOrDelete(SQLiteDatabase db, long cycleId, String selection){
+        String[] cycleSelectionArgs = {String.valueOf(cycleId)};
+        String[] cycleColumns = {Li5aContract.CycleEntry.COLUMN_NAME_STACK};
+        return db.query(Li5aContract.CycleEntry.TABLE_NAME, cycleColumns, selection,
+                cycleSelectionArgs, null, null, null);
+    }
+
+    private Cursor getRoundCursorForUpdateOrDelete(SQLiteDatabase db, long roundId, String selection){
+        String[] roundSelectionArgs = {String.valueOf(roundId)};
+        String[] roundColumns = {Li5aContract.GameRoundEntry.COLUMN_NAME_CYCLE};
+        return db.query(Li5aContract.GameRoundEntry.TABLE_NAME, roundColumns, selection,
+                roundSelectionArgs, null, null, null);
+    }
+
+    private Cursor getGameCursorForUpdateOrDelete(SQLiteDatabase db, long gameId, String selection){
+        String[] gameSelectionArgs = {String.valueOf(gameId)};
         String[] gameColumns = {Li5aContract.GameEntry.COLUMN_NAME_PLAYER0,
                 Li5aContract.GameEntry.COLUMN_NAME_PLAYER1,
                 Li5aContract.GameEntry.COLUMN_NAME_PLAYER2,
                 Li5aContract.GameEntry.COLUMN_NAME_PLAYER3,
                 Li5aContract.GameEntry.COLUMN_NAME_GAMEROUND};
 
-        Cursor gameCursor = db.query(Li5aContract.GameEntry.TABLE_NAME, gameColumns, selection,
+        return db.query(Li5aContract.GameEntry.TABLE_NAME, gameColumns, selection,
                 gameSelectionArgs, null, null, null);
-        gameCursor.moveToNext();
-
-        ArrayList<Long> playerIds = getPlayerIds(gameCursor);
-        long roundId = gameCursor.getLong(gameCursor.getColumnIndex(Li5aContract.GameEntry.COLUMN_NAME_GAMEROUND));
-        gameCursor.close();
-        for (int i = 0; i<4; i++){
-            String[] playerSelectionArgs = {String.valueOf(playerIds.get(i))};
-            String[] playerColumns = {Li5aContract.PlayerEntry.COLUMN_NAME_HAND,
-                    Li5aContract.PlayerEntry.COLUMN_NAME_ACCOUNT};
-            Cursor playerCursor = db.query(Li5aContract.PlayerEntry.TABLE_NAME, playerColumns, selection,
-                    playerSelectionArgs, null, null, null);
-            playerCursor.moveToNext();
-            long handId = playerCursor.getLong(playerCursor.getColumnIndex(Li5aContract.PlayerEntry.COLUMN_NAME_HAND));
-            long accountId = playerCursor.getLong(playerCursor.getColumnIndex(Li5aContract.PlayerEntry.COLUMN_NAME_ACCOUNT));
-            playerCursor.close();
-            String[] handSelectionArgs = {String.valueOf(handId)};
-
-            List<Card> handCards = players.get(i).getHand().getCards();
-            ContentValues handVals = new ContentValues();
-
-            for(int j=0; j<13; j++){
-                if(j<handCards.size()){
-                    handVals.put("card"+j, cardIds.get(handCards.get(j).getName()));
-                } else {
-                    handVals.put("card"+j, (String) null);
-                }
-            }
-            selection = BaseColumns._ID + " LIKE ?";
-            db.update(Li5aContract.HandEntry.TABLE_NAME, handVals, selection, handSelectionArgs);
-
-            List<Card> accountCards = players.get(i).getAccount().getCards();
-            ContentValues accountVals = new ContentValues();
-            for(int j = 0; j<4; j++){
-                if(j<accountCards.size()){
-                    accountVals.put("card"+j, cardIds.get(accountCards.get(j).getName()));
-                } else {
-                    handVals.put("card"+j, (String) null);
-                }
-            }
-            String[] accountSelectionArgs = {String.valueOf(accountId)};
-            db.update(Li5aContract.AccountEntry.TABLE_NAME, accountVals, selection, accountSelectionArgs);
-
-            ContentValues playerVals = new ContentValues();
-            playerVals.put(Li5aContract.PlayerEntry.COLUMN_NAME_TOTALSCORE, players.get(i).getTotalScore());
-            db.update(Li5aContract.PlayerEntry.TABLE_NAME, playerVals, selection, playerSelectionArgs);
-        }
-
-        String[] roundSelectionArgs = {String.valueOf(roundId)};
-        String[] roundColumns = {Li5aContract.GameRoundEntry.COLUMN_NAME_CYCLE};
-        Cursor roundCursor = db.query(Li5aContract.GameRoundEntry.TABLE_NAME, roundColumns, selection,
-                roundSelectionArgs, null, null, null);
-        roundCursor.moveToNext();
-
-        long cycleId = roundCursor.getLong(roundCursor.getColumnIndex(Li5aContract.GameRoundEntry.COLUMN_NAME_CYCLE));
-        roundCursor.close();
-
-        String[] cycleSelectionArgs = {String.valueOf(cycleId)};
-        String[] cycleColumns = {Li5aContract.CycleEntry.COLUMN_NAME_STACK};
-        Cursor cycleCursor = db.query(Li5aContract.CycleEntry.TABLE_NAME, cycleColumns, selection,
-                cycleSelectionArgs, null, null, null);
-        cycleCursor.moveToNext();
-
-        long stackId = cycleCursor.getLong(cycleCursor.getColumnIndex(Li5aContract.CycleEntry.COLUMN_NAME_STACK));
-        cycleCursor.close();
-
-        List<Card> stackCards = game.getCurrentRound().getCurrentCycle().getStack().getCards();
-        ContentValues stackVals = new ContentValues();
-        for(int j = 1; j<=4; j++){
-            if(j<stackCards.size()){
-                stackVals.put("card"+j, cardIds.get(stackCards.get(j).getName()));
-            } else {
-                stackVals.put("card"+j, (String) null);
-            }
-        }
-
-        String[] stackSelectionArgs = {String.valueOf(stackId)};
-        db.update(Li5aContract.StackEntry.TABLE_NAME, stackVals, selection, stackSelectionArgs);
-
-        ContentValues cycleVals = new ContentValues();
-        cycleVals.put(Li5aContract.CycleEntry.COLUMN_NAME_CYCLE_NUMBER,
-                game.getCurrentRound().getCurrentCycle().getCycleNumber());
-
-        db.update(Li5aContract.CycleEntry.TABLE_NAME, cycleVals, selection, cycleSelectionArgs);
-
-        ContentValues roundVals = new ContentValues();
-        roundVals.put(Li5aContract.GameRoundEntry.COLUMN_NAME_ROUND_NUMBER,
-                game.getCurrentRound().getRoundNumber());
-        db.update(Li5aContract.GameRoundEntry.TABLE_NAME, roundVals, selection, roundSelectionArgs);
-
-        ContentValues gameVals = new ContentValues();
-        gameVals.put(Li5aContract.GameEntry.COLUMN_NAME_DATE, System.currentTimeMillis());
-        gameVals.put(Li5aContract.GameEntry.COLUMN_NAME_OVER, game.isOver());
-        db.update(Li5aContract.GameEntry.TABLE_NAME, gameVals, selection, gameSelectionArgs);
-    }
-
-    @Override
-    public void deleteGame(int id) {
-
     }
 
     private HashMap<String, Long> getCardDict(SQLiteDatabase writableDb, Game game){
@@ -433,5 +535,4 @@ public class DbDao implements DAO {
         playerIds.add(gameCursor.getLong(gameCursor.getColumnIndex(Li5aContract.GameEntry.COLUMN_NAME_PLAYER3)));
         return playerIds;
     }
-
 }
