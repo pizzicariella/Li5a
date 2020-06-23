@@ -10,26 +10,28 @@ public class Li5aDbHelper extends SQLiteOpenHelper {
 
     private static Li5aDbHelper instance = null;
     public static final int DATABASE_VERSION = 1;
-    public static final String DATABASE_NAME = "Li5a.db";
+    //public static final String DATABASE_NAME = "Li5a.db";
+    String databaseName;
 
-    private Li5aDbHelper(Context context){
+   /* private Li5aDbHelper(Context context){
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        //context.openOrCreateDatabase(DATABASE_NAME, context.MODE_PRIVATE, null);
+    }*/
+    private Li5aDbHelper(Context context, String databaseName){
+        super(context, databaseName, null, DATABASE_VERSION);
+        this.databaseName = databaseName;
         //context.openOrCreateDatabase(DATABASE_NAME, context.MODE_PRIVATE, null);
     }
 
-    public static synchronized Li5aDbHelper getInstance(Context context){
+    public static synchronized Li5aDbHelper getInstance(Context context, String databaseName){
         if (instance == null){
-            instance = new Li5aDbHelper(context);
+            instance = new Li5aDbHelper(context, databaseName);
         }
         return instance;
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        //db.execSQL(Li5aContract.CardEntry.SQL_DELETE_ENTRIES);
-        //TODO remove this line later
-        //db.execSQL(Li5aContract.GameEntry.SQL_DELETE_ENTRIES);
-        //db.execSQL(Li5aContract.HandEntry.SQL_DELETE_ENTRIES);
         db.execSQL(Li5aContract.AccountEntry.SQL_CREATE_ENTRIES);
         db.execSQL(Li5aContract.CardEntry.SQL_CREATE_ENTRIES);
         db.execSQL(Li5aContract.CycleEntry.SQL_CREATE_ENTRIES);
@@ -42,14 +44,14 @@ public class Li5aDbHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL(Li5aContract.AccountEntry.SQL_DELETE_ENTRIES);
-        db.execSQL(Li5aContract.CardEntry.SQL_DELETE_ENTRIES);
-        db.execSQL(Li5aContract.CycleEntry.SQL_DELETE_ENTRIES);
-        db.execSQL(Li5aContract.GameEntry.SQL_DELETE_ENTRIES);
-        db.execSQL(Li5aContract.GameRoundEntry.SQL_DELETE_ENTRIES);
-        db.execSQL(Li5aContract.HandEntry.SQL_DELETE_ENTRIES);
-        db.execSQL(Li5aContract.PlayerEntry.SQL_DELETE_ENTRIES);
-        db.execSQL(Li5aContract.StackEntry.SQL_DELETE_ENTRIES);
+        db.execSQL(Li5aContract.AccountEntry.SQL_DELETE_TABLE);
+        db.execSQL(Li5aContract.CardEntry.SQL_DELETE_TABLE);
+        db.execSQL(Li5aContract.CycleEntry.SQL_DELETE_TABLE);
+        db.execSQL(Li5aContract.GameEntry.SQL_DELETE_TABLE);
+        db.execSQL(Li5aContract.GameRoundEntry.SQL_DELETE_TABLE);
+        db.execSQL(Li5aContract.HandEntry.SQL_DELETE_TABLE);
+        db.execSQL(Li5aContract.PlayerEntry.SQL_DELETE_TABLE);
+        db.execSQL(Li5aContract.StackEntry.SQL_DELETE_TABLE);
         onCreate(db);
     }
 

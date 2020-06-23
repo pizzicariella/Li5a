@@ -25,7 +25,10 @@ public class Li5aContract {
                         AccountEntry.COLUMN_NAME_CARD3 + " INTEGER)";
 
         public static final String SQL_DELETE_ENTRIES =
-                "DROP TABLE IF EXISTS " + CardEntry.TABLE_NAME;
+                "DELETE FROM " + AccountEntry.TABLE_NAME;
+
+        public static final String SQL_DELETE_TABLE =
+                "DROP TABLE IF EXISTS " + AccountEntry.TABLE_NAME;
     }
 
     public static class CardEntry implements BaseColumns {
@@ -40,6 +43,9 @@ public class Li5aContract {
                         CardEntry.COLUMN_NAME_RANK + " TEXT)";
 
         public static final String SQL_DELETE_ENTRIES =
+                "DELETE FROM " + CardEntry.TABLE_NAME;
+
+        public static final String SQL_DELETE_TABLE =
                 "DROP TABLE IF EXISTS " + CardEntry.TABLE_NAME;
     }
 
@@ -55,6 +61,9 @@ public class Li5aContract {
                         CycleEntry.COLUMN_NAME_CYCLE_NUMBER + " INTEGER)";
 
         public static final String SQL_DELETE_ENTRIES =
+                "DELETE FROM " + CycleEntry.TABLE_NAME;
+
+        public static final String SQL_DELETE_TABLE =
                 "DROP TABLE IF EXISTS " + CycleEntry.TABLE_NAME;
     }
 
@@ -82,6 +91,9 @@ public class Li5aContract {
                         GameEntry.COLUMN_NAME_GAMEROUND + " INTEGER)";
 
         public static final String SQL_DELETE_ENTRIES =
+                "DELETE FROM " + GameEntry.TABLE_NAME;
+
+        public static final String SQL_DELETE_TABLE =
                 "DROP TABLE IF EXISTS " + GameEntry.TABLE_NAME;
     }
 
@@ -97,6 +109,9 @@ public class Li5aContract {
                         GameRoundEntry.COLUMN_NAME_ROUND_NUMBER + " INTEGER)";
 
         public static final String SQL_DELETE_ENTRIES =
+                "DELETE FROM " + GameRoundEntry.TABLE_NAME;
+
+        public static final String SQL_DELETE_TABLE =
                 "DROP TABLE IF EXISTS " + GameRoundEntry.TABLE_NAME;
     }
 
@@ -134,6 +149,9 @@ public class Li5aContract {
                         HandEntry.COLUMN_NAME_CARD12 + " INTEGER)";
 
         public static final String SQL_DELETE_ENTRIES =
+                "DELETE FROM " + HandEntry.TABLE_NAME;
+
+        public static final String SQL_DELETE_TABLE =
                 "DROP TABLE IF EXISTS " + HandEntry.TABLE_NAME;
     }
 
@@ -155,6 +173,9 @@ public class Li5aContract {
                         PlayerEntry.COLUMN_NAME_LAST_COLLECTOR + " INTEGER)";
 
         public static final String SQL_DELETE_ENTRIES =
+                "DELETE FROM " + PlayerEntry.TABLE_NAME;
+
+        public static final String SQL_DELETE_TABLE =
                 "DROP TABLE IF EXISTS " + PlayerEntry.TABLE_NAME;
     }
 
@@ -174,6 +195,9 @@ public class Li5aContract {
                         StackEntry.COLUMN_NAME_CARD4 + " INTEGER)";
 
         public static final String SQL_DELETE_ENTRIES =
+                "DELETE FROM " + StackEntry.TABLE_NAME;
+
+        public static final String SQL_DELETE_TABLE =
                 "DROP TABLE IF EXISTS " + StackEntry.TABLE_NAME;
     }
 

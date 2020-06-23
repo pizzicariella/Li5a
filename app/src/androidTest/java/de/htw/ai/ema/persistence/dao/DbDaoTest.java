@@ -1,6 +1,8 @@
 package de.htw.ai.ema.persistence.dao;
 
+import android.app.Instrumentation;
 import android.content.Context;
+import android.database.sqlite.SQLiteDatabase;
 
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
@@ -19,14 +21,16 @@ import java.util.Map;
 import de.htw.ai.ema.logic.Li5aLogic;
 import de.htw.ai.ema.logic.Li5aLogicImpl;
 import de.htw.ai.ema.model.Card;
-import de.htw.ai.ema.model.Cycle;
+
 import de.htw.ai.ema.model.Game;
 import de.htw.ai.ema.model.GameRound;
 import de.htw.ai.ema.model.Hand;
 import de.htw.ai.ema.model.Player;
 import de.htw.ai.ema.model.Rank;
-import de.htw.ai.ema.model.Stack;
+
 import de.htw.ai.ema.model.Suit;
+import de.htw.ai.ema.persistence.database.Li5aContract;
+import de.htw.ai.ema.persistence.database.Li5aDbHelper;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -40,14 +44,18 @@ public class DbDaoTest {
     private DAO dao;
     private long testId;
     private Game testGame;
+    private static final String DATABASE_NAME = "Li5aTest.db";
 
     @Before
     public void setUp(){
-        Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        //uncomment
-       // context.deleteDatabase("Li5a.db");
 
-        dao = new DbDao(context);
+        InstrumentationRegistry.getInstrumentation().getContext().deleteDatabase(DATABASE_NAME);
+        Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
+
+        Li5aDbHelper helper = Li5aDbHelper.getInstance(context, DATABASE_NAME);
+        SQLiteDatabase db = helper.getWritableDatabase();
+
+        dao = new DbDao(context, DATABASE_NAME);
         Map<String, Player> players = new HashMap<>();
         players.put("p1", new Player("p1"));
         players.put("p2", new Player("p2"));
@@ -193,14 +201,17 @@ public class DbDaoTest {
 
         long id = dao.saveGame(g);
 
-        gr.setRoundNumber(444);
+        g.getCurrentRound().setRoundNumber(444);
+        g.getCurrentRound().getCurrentCycle().getStack().addCard(new Card(Suit.HEARTS, Rank.FOUR));
+        g.getCurrentRound().getCurrentCycle().setCycleNumber(333);
+        /*gr.setRoundNumber(444);
         Stack stack = new Stack();
         stack.addCard(new Card(Suit.HEARTS, Rank.FOUR));
         Cycle cycle = new Cycle();
         cycle.setStack(stack);
         cycle.setCycleNumber(333);
         gr.setCurrentCycle(cycle);
-        g.setCurrentRound(gr);
+        g.setCurrentRound(gr);*/
         g.getPlayers().get("p1").setTotalScore(50);
         ArrayList<Card> p2Hand = new ArrayList<>();
         p2Hand.add(new Card(Suit.SPADES, Rank.EIGHT));
@@ -252,8 +263,38 @@ public class DbDaoTest {
     }
 
     @Test
-    public void testDeleteGame(){
-        //TODO
+    public void testDeleteGame() throws Exception {
+        Map<String, Player> players = new HashMap<>();
+        players.put("p1", new Player("p1"));
+        players.put("p2", new Player("p2"));
+        players.put("p3", new Player("p3"));
+        players.put("p4", new Player("p4"));
+        Game deleteTestGame = new Game(players);
+        deleteTestGame.setName("deleteTestGameName");
+        Li5aLogic ll = new Li5aLogicImpl();
+        Hand[] hands = ll.dealCards(deleteTestGame.getDeck());
+        int i = 0;
+        for(Player p : deleteTestGame.getPlayers().values()){
+            p.setHand(hands[i]);
+            i++;
+        }
+        GameRound gr = new GameRound();
+        gr.setRoundNumber(99);
+        deleteTestGame.setCurrentRound(gr);
+        deleteTestGame.getPlayers().get("p3").getAccount().addCard(new Card(Suit.CLUBS, Rank.ACE));
+        deleteTestGame.getPlayers().get("p4").setTotalScore(88);
+
+        long deleteTestId = dao.saveGame(deleteTestGame);
+
+        boolean successfulDelete = dao.deleteGame(deleteTestId);
+        assertTrue("delete method didn't return true on existing id", successfulDelete);
+
+        expectedException.expect(Exception.class);
+        expectedException.expectMessage("Id not found.");
+        Game deletedGame = dao.loadGame(deleteTestId);
+
+        boolean unsuccessfulDelete = dao.deleteGame(7777);
+        assertFalse("delete method didn't return false on not existing id", unsuccessfulDelete);
     }
 
 

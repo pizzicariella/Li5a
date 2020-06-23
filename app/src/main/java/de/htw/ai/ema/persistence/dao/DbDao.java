@@ -30,9 +30,9 @@ public class DbDao implements DAO {
     private Li5aDbHelper helper;
     private final String TAG = "DbDao";
 
-    public DbDao(Context context){
+    public DbDao(Context context, String databaseName){
         //helper = new Li5aDbHelper(context);
-        this.helper = Li5aDbHelper.getInstance(context);
+        this.helper = Li5aDbHelper.getInstance(context, databaseName);
     }
 
     @Override
@@ -112,7 +112,6 @@ public class DbDao implements DAO {
                     Cursor handCursor = db.query(Li5aContract.HandEntry.TABLE_NAME, null, selection,
                             handSelectionArgs, null, null, null);
                     List<Card> handCards = new ArrayList<>();
-                    //handCursor.moveToNext();
                     if (handCursor.moveToFirst()) {
                         for (int i = 0; i < 13; i++) {
                             if (!handCursor.isNull(handCursor.getColumnIndex("card" + i))) {
@@ -131,7 +130,6 @@ public class DbDao implements DAO {
                     Cursor accountCursor = db.query(Li5aContract.AccountEntry.TABLE_NAME, null, selection,
                             accountSelectionArgs, null, null, null);
                     List<Card> accountCards = new ArrayList<>();
-                    //accountCursor.moveToNext();
                     if (accountCursor.moveToFirst()) {
                         for (int i = 0; i < 4; i++) {
                             if (!accountCursor.isNull(accountCursor.getColumnIndex("card" + i))) {
@@ -244,7 +242,6 @@ public class DbDao implements DAO {
         return allGames;
     }
 
-    //TODO write test
     @Override
     public boolean updateGame(long id, Game game) {
         SQLiteDatabase db = helper.getWritableDatabase();
@@ -307,21 +304,19 @@ public class DbDao implements DAO {
 
             Cursor roundCursor = getRoundCursorForUpdateOrDelete(db, roundId, selection);
             if(roundCursor.moveToNext()) {
-
                 long cycleId = roundCursor.getLong(roundCursor.getColumnIndex(Li5aContract.GameRoundEntry.COLUMN_NAME_CYCLE));
                 roundCursor.close();
 
                 Cursor cycleCursor = getCycleCursorForUpdateOrDelete(db, cycleId, selection);
                 if(cycleCursor.moveToNext()) {
-
                     long stackId = cycleCursor.getLong(cycleCursor.getColumnIndex(Li5aContract.CycleEntry.COLUMN_NAME_STACK));
                     cycleCursor.close();
 
                     List<Card> stackCards = game.getCurrentRound().getCurrentCycle().getStack().getCards();
                     ContentValues stackVals = new ContentValues();
                     for (int j = 1; j <= 4; j++) {
-                        if (j < stackCards.size()) {
-                            stackVals.put("card" + j, cardIds.get(stackCards.get(j).getName()));
+                        if (j <= stackCards.size()) {
+                            stackVals.put("card" + j, cardIds.get(stackCards.get(j-1).getName()));
                         } else {
                             stackVals.put("card" + j, (String) null);
                         }
@@ -481,25 +476,25 @@ public class DbDao implements DAO {
 
             List<Card> handCards = p.getHand().getCards();
             ContentValues handVals = new ContentValues();
-            int cardIndex = 0;
-            for(Card c: handCards){
-                handVals.put("card"+cardIndex, cardDict.get(c.getName()));
-                cardIndex++;
+            for(int i = 0; i<13; i++){
+                if(i<handCards.size()) {
+                    handVals.put("card" + i, cardDict.get(handCards.get(i).getName()));
+                } else {
+                    handVals.put("card"+i, (String) null);
+                }
             }
-            /*Long handId = db.insert(Li5aContract.HandEntry.TABLE_NAME,
-                    Li5aContract.HandEntry.COLUMN_NAME_CARD1, handVals);*/
             long handId = writableDb.insert(Li5aContract.HandEntry.TABLE_NAME, null, handVals);
 
             List<Card> accountCards = p.getAccount().getCards();
             ContentValues accountVals = new ContentValues();
-            int accountCardIndex = 0;
-            for (Card c: accountCards){
-                accountVals.put("card"+accountCardIndex, cardDict.get(c.getName()));
-                accountCardIndex++;
+            for (int i = 0; i<4; i++){
+                if(i<accountCards.size()) {
+                    accountVals.put("card" + i, cardDict.get(accountCards.get(i).getName()));
+                } else {
+                    accountVals.put("card" + i, (String) null);
+                }
             }
-            Long accountId = writableDb.insert(Li5aContract.AccountEntry.TABLE_NAME,
-                    Li5aContract.AccountEntry.COLUMN_NAME_CARD0, accountVals);
-            //long accountId = db.insert(Li5aContract.AccountEntry.TABLE_NAME, null, accountVals);
+            long accountId = writableDb.insert(Li5aContract.AccountEntry.TABLE_NAME, null, accountVals);
 
             ContentValues playerVals = new ContentValues();
             playerVals.put(Li5aContract.PlayerEntry.COLUMN_NAME_NAME, p.getName());
@@ -516,19 +511,18 @@ public class DbDao implements DAO {
         List<Card> stackCards = stack.getCards();
 
         ContentValues stackVals = new ContentValues();
-        int stackCardIndex = 1;
-        for (Card c : stackCards) {
-            stackVals.put("card" + stackCardIndex, cardDict.get(c.getName()));
-            stackCardIndex++;
+        for (int i = 1; i<=4; i++) {
+            if(i<=stackCards.size()){
+                stackVals.put("card" + i, cardDict.get(stackCards.get(i-1).getName()));
+            } else {
+                stackVals.put("card" + i, (String) null);
+            }
         }
-        /*long stackId = db.insert(Li5aContract.StackEntry.TABLE_NAME,
-                Li5aContract.StackEntry.COLUMN_NAME_CARD1, stackVals);*/
         return db.insert(Li5aContract.StackEntry.TABLE_NAME, null, stackVals);
     }
 
     private ArrayList<Long> getPlayerIds(Cursor gameCursor){
         ArrayList<Long> playerIds = new ArrayList<>();
-        //gameCursor.moveToNext();
         playerIds.add(gameCursor.getLong(gameCursor.getColumnIndex(Li5aContract.GameEntry.COLUMN_NAME_PLAYER0)));
         playerIds.add(gameCursor.getLong(gameCursor.getColumnIndex(Li5aContract.GameEntry.COLUMN_NAME_PLAYER1)));
         playerIds.add(gameCursor.getLong(gameCursor.getColumnIndex(Li5aContract.GameEntry.COLUMN_NAME_PLAYER2)));
