@@ -15,6 +15,8 @@ import android.content.BroadcastReceiver;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -149,7 +151,16 @@ public class JoinGameActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     TextView tv = (TextView)v;
-                    tv.setBackgroundColor(Color.GREEN);
+                    int color = Color.TRANSPARENT;
+                    Drawable background = v.getBackground();
+                    if(background instanceof ColorDrawable){
+                        color = ((ColorDrawable) background).getColor();
+                    }
+                    if(!(color == Color.GREEN)) {
+                        tv.setBackgroundColor(Color.GREEN);
+                    } else {
+                        tv.setBackgroundColor(Color.TRANSPARENT);
+                    }
                     JoinGameActivity.this.selected = devices.get(tv.getId());
                 }
             };

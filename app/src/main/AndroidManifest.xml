@@ -19,6 +19,7 @@
         <activity android:name=".gui.PlayGameActivity"></activity>
         <activity android:name=".gui.JoinGameActivity" />
         <activity android:name=".gui.StartGameActivity" />
+        <activity android:name=".gui.LoadGameActivity"/>
         <activity android:name=".gui.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

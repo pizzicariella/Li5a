@@ -6,6 +6,9 @@
     <string name="button_load_game">Load game</string>
     <string name="message_enter_name">Enter your name</string>
     <string name="button_connect_to_host">Connect</string>
+    <string name="button_load_selected_game">Load game</string>
     <string name="button_host_game">Host game</string>
     <string name="waiting_for_players_text">Waiting for other Players to join the game...</string>
+    <string name="text_select_game">Select the game you want to load</string>
+    <string name="text_select_name">Select your name</string>
 </resources>

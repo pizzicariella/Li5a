@@ -45,6 +45,7 @@ public class DbDaoTest {
     private long testId;
     private Game testGame;
     private static final String DATABASE_NAME = "Li5aTest.db";
+    //private static final String DATABASE_NAME = "Li5a.db";
 
     @Before
     public void setUp(){
