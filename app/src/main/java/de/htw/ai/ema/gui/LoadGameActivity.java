@@ -180,8 +180,6 @@ public class LoadGameActivity extends AppCompatActivity {
         @NonNull
         @Override
         public GameViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            //TextView v = (TextView) LayoutInflater.from(parent.getContext())
-              //      .inflate(R.layout.game_name_text_view, parent, false);
 
             View view = inflater.inflate(R.layout.game_recycler_view_row, parent, false);
 

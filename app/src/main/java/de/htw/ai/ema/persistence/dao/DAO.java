@@ -19,7 +19,7 @@ public interface DAO {
     public Game loadGame(long id) throws Exception;
 
     /**
-     * This method loads characteristics of all games, including id, from storage.
+     * This method loads characteristics of all games, including id and name from storage.
      * @return
      */
     public Map<Long, String> getAllGameIds();
@@ -28,15 +28,14 @@ public interface DAO {
      * This method updates an existing game object.
      * @param id
      * @param game
-     * @return
+     * @return true on successful update, else false
      */
     public boolean updateGame(long id, Game game);
 
     /**
      * This method deletes a game from storage.
      * @param id
-     * @return
+     * @return true on successful update, else false
      */
     public boolean deleteGame(long id);
-
 }

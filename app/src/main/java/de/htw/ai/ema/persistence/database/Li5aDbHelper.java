@@ -5,22 +5,15 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 //TODO eventuell muss diese Klasse nun doch kein Singleton sein?
-//TODO before integrating component create test db
 public class Li5aDbHelper extends SQLiteOpenHelper {
 
     private static Li5aDbHelper instance = null;
     public static final int DATABASE_VERSION = 1;
-    //public static final String DATABASE_NAME = "Li5a.db";
     String databaseName;
 
-   /* private Li5aDbHelper(Context context){
-        super(context, DATABASE_NAME, null, DATABASE_VERSION);
-        //context.openOrCreateDatabase(DATABASE_NAME, context.MODE_PRIVATE, null);
-    }*/
     private Li5aDbHelper(Context context, String databaseName){
         super(context, databaseName, null, DATABASE_VERSION);
         this.databaseName = databaseName;
-        //context.openOrCreateDatabase(DATABASE_NAME, context.MODE_PRIVATE, null);
     }
 
     public static synchronized Li5aDbHelper getInstance(Context context, String databaseName){

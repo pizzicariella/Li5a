@@ -4,6 +4,7 @@
     android:layout_height="wrap_content"
     android:layout_marginTop="8dp"
     android:layout_marginBottom="8dp"
+    android:clickable="true"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <TextView
@@ -17,7 +18,6 @@
         android:layout_marginBottom="1dp"
         android:layout_marginTop="16dp"
         android:textColor="@color/black"
-        android:clickable="true"
         app:layout_constraintBottom_toTopOf="@id/text_view_game_date"
         app:layout_constraintHorizontal_bias="0.694"/>
 

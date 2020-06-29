@@ -1,37 +1,26 @@
 package de.htw.ai.ema.persistence.dao;
 
-import android.app.Instrumentation;
 import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
-
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
 import androidx.test.platform.app.InstrumentationRegistry;
-
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
 import de.htw.ai.ema.logic.Li5aLogic;
 import de.htw.ai.ema.logic.Li5aLogicImpl;
 import de.htw.ai.ema.model.Card;
-
 import de.htw.ai.ema.model.Game;
 import de.htw.ai.ema.model.GameRound;
 import de.htw.ai.ema.model.Hand;
 import de.htw.ai.ema.model.Player;
 import de.htw.ai.ema.model.Rank;
-
 import de.htw.ai.ema.model.Suit;
-import de.htw.ai.ema.persistence.database.Li5aContract;
-import de.htw.ai.ema.persistence.database.Li5aDbHelper;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -53,8 +42,8 @@ public class DbDaoTest {
         InstrumentationRegistry.getInstrumentation().getContext().deleteDatabase(DATABASE_NAME);
         Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
 
-        Li5aDbHelper helper = Li5aDbHelper.getInstance(context, DATABASE_NAME);
-        SQLiteDatabase db = helper.getWritableDatabase();
+        //Li5aDbHelper helper = Li5aDbHelper.getInstance(context, DATABASE_NAME);
+       // SQLiteDatabase db = helper.getWritableDatabase();
 
         dao = new DbDao(context, DATABASE_NAME);
         Map<String, Player> players = new HashMap<>();
@@ -205,14 +194,7 @@ public class DbDaoTest {
         g.getCurrentRound().setRoundNumber(444);
         g.getCurrentRound().getCurrentCycle().getStack().addCard(new Card(Suit.HEARTS, Rank.FOUR));
         g.getCurrentRound().getCurrentCycle().setCycleNumber(333);
-        /*gr.setRoundNumber(444);
-        Stack stack = new Stack();
-        stack.addCard(new Card(Suit.HEARTS, Rank.FOUR));
-        Cycle cycle = new Cycle();
-        cycle.setStack(stack);
-        cycle.setCycleNumber(333);
-        gr.setCurrentCycle(cycle);
-        g.setCurrentRound(gr);*/
+
         g.getPlayers().get("p1").setTotalScore(50);
         ArrayList<Card> p2Hand = new ArrayList<>();
         p2Hand.add(new Card(Suit.SPADES, Rank.EIGHT));
@@ -297,6 +279,4 @@ public class DbDaoTest {
         boolean unsuccessfulDelete = dao.deleteGame(7777);
         assertFalse("delete method didn't return false on not existing id", unsuccessfulDelete);
     }
-
-
 }

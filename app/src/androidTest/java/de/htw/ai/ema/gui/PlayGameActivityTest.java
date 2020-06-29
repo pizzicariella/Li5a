@@ -19,12 +19,7 @@ import org.hamcrest.TypeSafeMatcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import de.htw.ai.ema.R;
-import de.htw.ai.ema.gui.PlayGameActivity;
-import de.htw.ai.ema.model.Card;
-import de.htw.ai.ema.model.Rank;
-import de.htw.ai.ema.model.Suit;
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
@@ -62,6 +57,11 @@ public class PlayGameActivityTest {
     //TODO
     @Test
     public void testStackImageView(){
+        fail("Not yet implemented");
+    }
+
+    @Test
+    public void testOtherPlayersAreDisplayed(){
         fail("Not yet implemented");
     }
 
