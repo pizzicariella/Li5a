@@ -4,23 +4,19 @@ import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.view.View;
 import android.widget.TextView;
-
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.test.espresso.contrib.RecyclerViewActions;
 import androidx.test.espresso.matcher.BoundedMatcher;
-import androidx.test.espresso.matcher.ViewMatchers;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 import androidx.test.filters.LargeTest;
 import androidx.test.rule.ActivityTestRule;
 import de.htw.ai.ema.R;
-
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
 import static androidx.test.espresso.Espresso.onView;
 import static androidx.test.espresso.action.ViewActions.click;
 import static androidx.test.espresso.assertion.ViewAssertions.matches;
@@ -28,6 +24,7 @@ import static androidx.test.espresso.core.internal.deps.dagger.internal.Precondi
 import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withId;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
+import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
 @LargeTest
@@ -81,8 +78,13 @@ public class LoadGameActivityTest {
         onView(withId(R.id.player_names_recycler_view)).check(matches(isDisplayed()));
         onView(withId(R.id.player_names_recycler_view)).perform(RecyclerViewActions.actionOnItemAtPosition(0, click()));
         onView(withId(R.id.player_names_recycler_view)).check(matches(atPosition(0, withBgColor(Color.GREEN))));
+    }
+
+    @Test
+    public void testStartAsPlayerButton(){
         //onView(withId(R.id.text_view_select_game)).check(matches(withText("Waiting for other players to join the game...")));
         //onView(withId(R.id.activity_play_game)).check(matches(isDisplayed()));
+        fail("Not yet implemented");
     }
 
 

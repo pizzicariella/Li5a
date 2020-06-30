@@ -1,19 +1,13 @@
 package de.htw.ai.ema.control;
 
-import android.app.Activity;
-import android.bluetooth.BluetoothSocket;
 import android.os.Build;
 import android.util.Log;
 import androidx.annotation.RequiresApi;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-
 import de.htw.ai.ema.gui.ChangeListener;
-import de.htw.ai.ema.gui.PlayGameActivity;
 import de.htw.ai.ema.logic.Li5aLogic;
 import de.htw.ai.ema.logic.Li5aLogicImpl;
 import de.htw.ai.ema.model.Card;
@@ -40,7 +34,6 @@ public class MultiplayerController implements Control {
         this.players = new HashMap<>();
         this.players.put(playersName, new Player(playersName));
         this.host = host;
-        //this.handler = new NToMConnectionHandler(playersName);
         this.handler = ConnectionProperties.getInstance().getConHandler();
         this.handler.addReceiveListener(new ReceiveListenerImpl());
         this.logic = new Li5aLogicImpl();

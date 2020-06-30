@@ -90,20 +90,17 @@ public class JoinGameActivity extends AppCompatActivity {
             } catch (InterruptedException e) {
                 Log.e(TAG, "couldn't join connect thread", e);
             }
-            //BluetoothProperties btProps = BluetoothProperties.getInstance();
             Map<String, BluetoothSocket> sockets = this.btProps.getSockets();
             if(sockets != null){
                 for(BluetoothSocket socket: sockets.values()){
                     try{
                         this.connectionHandler.addReceiveListener(received -> {
-                            //String message = new String(received, StandardCharsets.UTF_8).trim();
                             if(received instanceof String) {
                                 String message = (String) received;
                                 Log.println(Log.INFO, TAG, "Received the following message: " + message);
                                 if (message.equals("connectingDone")) {
                                     Log.println(Log.INFO, TAG, "all 4 players are connected and " +
                                             "the game can start. Jippiiiieee");
-                                    //this.connectionHandler.unhandleConnections(false);
                                     Intent intent = new Intent(this, PlayGameActivity.class);
                                     intent.putExtra("playersName", playersName);
                                     intent.putExtra("host", false);

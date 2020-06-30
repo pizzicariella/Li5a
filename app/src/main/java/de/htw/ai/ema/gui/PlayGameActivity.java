@@ -47,8 +47,6 @@ public class PlayGameActivity extends AppCompatActivity {
             @Override
             public void onCardAdd(Card c) {
                 Log.println(Log.INFO, TAG, "Listener: Card added");
-                //this.imageAdapter.notifyItemInserted(handCards.size()-1);
-                //Log.println(Log.INFO, TAG, "adapter notified");
             }
 
             @Override

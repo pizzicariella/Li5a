@@ -3,6 +3,7 @@ package de.htw.ai.ema.gui;
 import androidx.appcompat.app.AppCompatActivity;
 import de.htw.ai.ema.R;
 import de.htw.ai.ema.network.ConnectionProperties;
+import de.htw.ai.ema.network.bluetooth.BluetoothConnector;
 import de.htw.ai.ema.network.bluetooth.BluetoothConnector4Player;
 import de.htw.ai.ema.network.bluetooth.BluetoothProperties;
 import de.htw.ai.ema.network.service.handler.ConnectionHandler;
