@@ -35,7 +35,7 @@ public interface DAO {
     /**
      * This method deletes a game from storage.
      * @param id
-     * @return true on successful update, else false
+     * @return true on successful delete, else false
      */
     public boolean deleteGame(long id);
 }

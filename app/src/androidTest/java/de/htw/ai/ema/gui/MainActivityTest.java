@@ -55,9 +55,6 @@ public class MainActivityTest {
     @Test
     public void testLoadGameButton(){
         onView(withId(R.id.load_game_button)).perform(click());
-        //TODO create view with id activity_load_game
-        //onView(withId(R.id.activity_load_game)).check(matches(isDisplayed()));
-        fail("Not yet implemented");
+        onView(withId(R.id.activity_load_game)).check(matches(isDisplayed()));
     }
-
 }
